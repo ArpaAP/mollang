@@ -1,10 +1,9 @@
 # 몰랭
-몰?루 프로그래밍 언어
+**몰?루 프로그래밍 언어**
 
 ![몰?루](mollu.gif)
 
-본 언어는 [엄랭](https://github.com/rycont/umjunsik-lang)에 깊은 감명을 받고 존경을 담아 제작되었습니다.
-왜 만든지는 나도 잘 몰?루
+본 언어는 [엄랭](https://github.com/rycont/umjunsik-lang)에 깊은 감명을 받고 존경을 담아 제작되었습니다. 왜 만든건지는 나도 잘 몰?루
 
 **실제 구현체(Python)는 개발 예정입니다.**
 
