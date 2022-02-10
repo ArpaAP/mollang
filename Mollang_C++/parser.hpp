@@ -13,6 +13,7 @@ struct Parsed {
 
 //1: Int Literal
 //2: Variable with Initialize
+//11: Variable with Value Copy
 //3: Print
 //4: Input
 //5: PrintMode :Character
@@ -42,7 +43,6 @@ pair<ll, ll> parseLiteral(wstring& script, ll i) {
 }
 
 Parsed parse(wstring script) {
-	ll tokenType = -1;
 	Parsed result;
 	ll line_number = 0;
 	stack<ll> if_jumppoint;
@@ -68,6 +68,13 @@ Parsed parse(wstring script) {
 				init = ret.first;
 				i = ret.second;
 				result.tokens.push_back({ 2, length, init });
+			}
+			else if (i < script.size() && (script[i] == L'¸ô' || script[i] == L'¸ð')) {
+				ll value = 1;
+				while (i < script.size() && !((script[i] == L'¸ô' || script[i] == L'¿Ã')))
+					value++, i++;
+				i++;
+				result.tokens.push_back({ 11, length, value });
 			}
 			else result.tokens.push_back({ 8, length, -1 });
 			i--;
@@ -142,7 +149,7 @@ Parsed parse(wstring script) {
 
 		}
 		else {
-			exitMessage(4, to_string(script[i]), {line_number, i});
+			exitMessage(4, to_string(script[i]), { line_number, i });
 		}
 	}
 	return result;

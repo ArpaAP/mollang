@@ -23,6 +23,15 @@ ll run(Parsed x, bool shell) {
 			else var[s] = t;
 		}
 
+		if (f == 11) {
+			if (var.count(t) == 0) {
+				exitMessage(3, "¸ô", {});
+			}
+			if (var.count(s)) 
+				var[s] += var[t];
+			else var[s] = var[t];
+		}
+
 		if (f == 3) {
 			if (runtime.empty()) {
 				exitMessage(3, "·ç", {});
