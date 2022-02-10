@@ -66,10 +66,11 @@ Parsed parse(wstring script) {
 			if (i < script.size() && (script[i] == '?' || script[i] == '!')) {
 				auto ret = parseLiteral(script, i);
 				init = ret.first;
-				i = ret.second - 1;
+				i = ret.second;
 				result.tokens.push_back({ 2, length, init });
 			}
 			else result.tokens.push_back({ 8, length, -1 });
+			i--;
 		}
 		else if (script[i] == L'·ç') {
 			if (i + 1 < script.size() && script[i + 1] == L'?') {
