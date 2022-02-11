@@ -1,0 +1,22 @@
+{
+    "name": "mollang",
+    "version": "1.0.0",
+    "description": "몰?루 프로그래밍 언어",
+    "main": "src/index.js",
+    "bin": "src/index.js",
+    "type": "module",
+    "scripts": {
+        "start": "node src/index.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "kndlr",
+    "license": "ISC",
+    "keywords": [
+        "esoteric",
+        "language",
+        "molu"
+    ],
+    "dependencies": {
+        "readline-sync": "^1.4.10"
+    }
+}
