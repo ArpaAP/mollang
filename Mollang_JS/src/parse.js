@@ -22,9 +22,9 @@ function parseLiteral(script, i) {
     let ends = [];
     let cur = 0;
     for (; i < script.length; i++) {
-        if (script[i] == "?") cur++;
-        else if (script[i] == "!") cur--;
-        else if (script[i] == ".") {
+        if (script[i] === "?") cur++;
+        else if (script[i] === "!") cur--;
+        else if (script[i] === ".") {
             ends.push(cur);
             cur = 0;
         } else break;
@@ -42,25 +42,25 @@ export default function parse(script) {
     result.line_backpoint.push(0);
 
     for (let i = 0; i < script.length; i++) {
-        if (script[i] == "?" || script[i] == "!") {
+        if (script[i] === "?" || script[i] === "!") {
             let ret = parseLiteral(script, i);
             result.tokens.push([1, ret[0], -1]);
             i = ret[1];
             i--;
-        } else if (script[i] == ".") {
+        } else if (script[i] === ".") {
             exitMessage(1, ".", [line_number, i]);
-        } else if (script[i] == "몰" || script[i] == "모") {
+        } else if (script[i] === "몰" || script[i] === "모") {
             let length = 1;
             while (
                 i < script.length &&
-                !(script[i] == "몰" || script[i] == "올")
+                !(script[i] === "몰" || script[i] === "올")
             ) {
                 i++;
                 length++;
             }
             i++;
             let init = 0;
-            if (i < script.length && (script[i] == "?" || script[i] == "!")) {
+            if (i < script.length && (script[i] === "?" || script[i] === "!")) {
                 let ret = parseLiteral(script, i);
                 init = ret[0];
                 i = ret[1];
@@ -69,9 +69,9 @@ export default function parse(script) {
                 result.tokens.push([8, length, -1]);
             }
             i--;
-        } else if (script[i] == "루") {
-            if (i + 1 < script.length && script[i + 1] == "?") {
-                if (result.tokens[-1][0] == 8) {
+        } else if (script[i] === "루") {
+            if (i + 1 < script.length && script[i + 1] === "?") {
+                if (result.tokens[-1][0] === 8) {
                     let length = result.tokens[-1][1];
                     result.tokens.pop();
                     result.tokens.push([4, length, -1]);
@@ -81,15 +81,15 @@ export default function parse(script) {
             } else {
                 result.tokens.push([3, -1, -1]);
             }
-        } else if (script[i] == "아") {
+        } else if (script[i] === "아") {
             result.tokens.push([5, -1, -1]);
-        } else if (script[i] == "가") {
+        } else if (script[i] === "가") {
             result.tokens.push([6, -1, -1]);
-        } else if (script[i] == "은") {
+        } else if (script[i] === "은") {
             if (
                 i + 2 < script.length &&
-                script[i + 1] == "?" &&
-                script[i + 2] == "행"
+                script[i + 1] === "?" &&
+                script[i + 2] === "행"
             ) {
                 if_jumppoint.push(result.tokens.length);
                 result.tokens.push([9, -1, -1]);
@@ -97,11 +97,11 @@ export default function parse(script) {
                 exitMessage(2, "?행", [line_number, i]);
             }
             i += 2;
-        } else if (script[i] == "털") {
+        } else if (script[i] === "털") {
             if (
                 i + 2 < script.length &&
-                script[i + 1] == "!" &&
-                script[i + 2] == "자"
+                script[i + 1] === "!" &&
+                script[i + 2] === "자"
             ) {
                 result.tokens[if_jumppoint[0]][1] = result.tokens.length;
                 if_jumppoint.pop();
@@ -109,31 +109,31 @@ export default function parse(script) {
                 exitMessage(2, "?자", [line_number, i]);
             }
             i += 2;
-        } else if (script[i] == "0") {
+        } else if (script[i] === "0") {
             if (
                 i + 2 < script.length &&
-                script[i + 1] == "ㅅ" &&
-                script[i + 2] == "0"
+                script[i + 1] === "ㅅ" &&
+                script[i + 2] === "0"
             ) {
                 let value = 0;
                 let mode = 0;
                 if (
                     i + 3 < script.length &&
-                    (script[i + 2] == "!" || script[i + 3] == "?")
+                    (script[i + 2] === "!" || script[i + 3] === "?")
                 ) {
                     let ret = parseLiteral(script, i + 3);
                     value = ret[0];
                     i = ret[1] - 1;
                 } else if (
-                    (i + 3 < script.length && script[i + 3] == "몰") ||
-                    script[i + 3] == "모"
+                    (i + 3 < script.length && script[i + 3] === "몰") ||
+                    script[i + 3] === "모"
                 ) {
                     mode = 1;
                     value = 1;
                     i += 3;
                     while (
                         i < script.length &&
-                        !(script[i] == "몰" || script[i] == "올")
+                        !(script[i] === "몰" || script[i] === "올")
                     ) {
                         value++;
                         i++;
@@ -146,18 +146,16 @@ export default function parse(script) {
             } else {
                 exitMessage(2, "ㅅ0", [line_number, i]);
             }
-        } else if (script[i] == "자") {
-            if (i + 1 < script.length && script[i + 1] == "!") {
+        } else if (script[i] === "자") {
+            if (i + 1 < script.length && script[i + 1] === "!") {
                 result.tokens.push([7, -1, -1]);
             } else {
                 exitMessage(2, "!", [line_number, i]);
             }
-        } else if (script[i] == "\n") {
+        } else if (script[i] === "\n") {
             line_number++;
             result.line_backpoint.push(result.tokens.length);
-        } else if (script[i] == " ") {
-            pass;
-        } else {
+        } else if (script[i] !== " ") {
             exitMessage(4, script[i], [line_number, i]);
         }
     }
