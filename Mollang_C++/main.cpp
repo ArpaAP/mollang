@@ -10,7 +10,7 @@ int main(int argc, char* argv[]) {
 
 	bool show_parsed = false;
 	for (ll i = 2; i < argc; i++) {
-		if (argv[i] == "-parsed") show_parsed = true;
+		if (strcmp(argv[i], "-parsed") == 0) show_parsed = true;
 	}
 
 	string file;

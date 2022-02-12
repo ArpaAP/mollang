@@ -46,6 +46,7 @@ vector<pair<wstring, wstring>> pair_keywords = { {L"¾Æ", L"·ç"}, {L"Àº?Çà", L"ÅÐ
 
 set<ll> front_parametered = { 0, 1, PAIR_KEYWORD + 1 };
 set<ll> back_parametered = { 2 };
+set<ll> nonNumberParam = { 0 };
 
 ll literalToken(wstring& script, ll idx) {
 	ll length = 0;
@@ -59,7 +60,7 @@ ll literalToken(wstring& script, ll idx) {
 Tokenized tokenize(wstring script) {
 	Tokenized ret;
 	ret.gotopoint.push_back(0);
-	pair<ll, wstring> closePair = { -1, L"" };
+	stack<pair<ll, wstring>> closePair;
 	for (ll i = 0; i < script.size(); i++) {
 		wchar_t cur = script[i];
 		if (cur == L'\n') {
@@ -74,11 +75,11 @@ Tokenized tokenize(wstring script) {
 			i += len - 1;
 			continue;
 		}
-		if (closePair.first != -1) {
-			if (script.substr(i, closePair.second.size()) == closePair.second) {
-				get<1>(ret.tokens[closePair.first]) = ret.tokens.size() - 1;
-				i += closePair.second.size() - 1;
-				closePair = { -1, L"" };
+		if (closePair.size() > 0) {
+			if (script.substr(i, closePair.top().second.size()) == closePair.top().second) {
+				get<1>(ret.tokens[closePair.top().first]) = ret.tokens.size() - 1;
+				i += closePair.top().second.size() - 1;
+				closePair.pop();
 				continue;
 			}
 		}
@@ -95,7 +96,7 @@ Tokenized tokenize(wstring script) {
 		for (ll t = 0; t < pair_keywords.size(); t++) {
 			if (script.substr(i, pair_keywords[t].first.size()) == pair_keywords[t].first) {
 				foundToken = true;
-				closePair = { ret.tokens.size(), pair_keywords[t].second };
+				closePair.push({ ret.tokens.size(), pair_keywords[t].second });
 				ret.tokens.push_back({ PAIR_KEYWORD + t, -1, -1 });
 				i += pair_keywords[t].first.size() - 1;
 				break;
@@ -106,7 +107,7 @@ Tokenized tokenize(wstring script) {
 		ErrorCode(UNKNOWN_TOKEN);
 	}
 
-	if (closePair.first != -1) {
+	if (closePair.size() > 0) {
 		ErrorCode(MISSING_PAIR);
 	}
 

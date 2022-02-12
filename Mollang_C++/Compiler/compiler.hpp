@@ -12,15 +12,9 @@ Compiled compile(Tokenized x) {
 	Compiled ret = { vector<bool>(x.literals.size()) };
 	for (ll i = 0; i < x.tokens.size(); i++) {
 		ll cur = get<0>(x.tokens[i]);
-		if (cur >= PAIR_KEYWORD) {
-			ll t = i + 1;
-			while (t <= get<1>(x.tokens[i])) {
-				if (get<0>(x.tokens[t]) == LITERAL)
-					ret.literal_owned[get<1>(x.tokens[t])] = true;
-				t++;
-			}
-			i = t - 1;
-		}
+		if (cur == -1) continue;
+		if (nonNumberParam.count(cur)) continue;
+
 		if (back_parametered.count(cur)) {
 			if (i == x.tokens.size() - 1) ErrorCode(MISSING_PARAMETER);
 			if (get<0>(x.tokens[i + 1]) == LITERAL) {
@@ -38,6 +32,15 @@ Compiled compile(Tokenized x) {
 				ret.literal_owned[get<1>(x.tokens[i - 1])] = true;
 			}
 			else ErrorCode(MISSING_PARAMETER);
+		}
+		if (cur >= PAIR_KEYWORD) {
+			ll t = i + 1;
+			while (t <= get<1>(x.tokens[i])) {
+				if (get<0>(x.tokens[t]) == LITERAL)
+					ret.literal_owned[get<1>(x.tokens[t])] = true;
+				t++;
+			}
+			i = t - 1;
 		}
 	}
 
