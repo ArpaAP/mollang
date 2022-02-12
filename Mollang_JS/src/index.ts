@@ -4,33 +4,48 @@ import { Command } from "commander";
 import parse from "./parse.js";
 import run from "./runtime.js";
 
-async function main(code: string) {
+async function main(code: string, parseOut: string) {
     code = code
         .split("\n")
         .map((line: string) => line.trim())
         .join("\n");
-    return run(...parse(code));
+
+    const parsed = parse(code);
+    if (parseOut) {
+        fs.writeFile(
+            parseOut,
+            JSON.stringify(parsed),
+            { encoding: "utf8" },
+            (err) => {
+                if (err) {
+                    throw err;
+                }
+            }
+        );
+    }
+    return run(...parsed);
 }
 
 const program = new Command();
 program
     .name("mollang")
     .argument("<filename>")
-    .action(async (fn: string) => {
+    .option("-p, --parse <outfile>", "Write parsed data to file", false)
+    .action(async (fn: string, options) => {
         if (fn.endsWith(".molu")) {
             if (fs.existsSync(fn)) {
                 fs.readFile(fn, { encoding: "utf8" }, (err, data) => {
                     if (err) {
-                        program.error(err.message);
+                        throw err;
                     } else {
-                        main(data);
+                        main(data, options.parse);
                     }
                 });
             } else {
-                program.error("File not found");
+                throw new Error("File not found");
             }
         } else {
-            program.error("Unknown file type");
+            throw new Error("Unknown file type");
         }
     });
 
