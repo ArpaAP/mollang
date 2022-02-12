@@ -2,11 +2,12 @@ import * as fs from "fs";
 import { Command } from "commander";
 import parse from "./parse";
 import run from "./runtime";
+import exitMessage from "./exit";
 
 /**
  * Mollang 실행
  * @param code 실행할 Mollang 코드
- * @param parseOut 파싱 결과 출력 파일 (ex: parsed.json)
+ * @param parseOut 파싱 결과 출력 파일 (cli 값이 true일 때 가능, ex: parsed.json)
  * @param recursion GOTO 반복 최대 가능 횟수
  * @param cli 커맨드 라인 여부 (true: 리턴값 없음, false: 리턴값 출력)
  * @returns cli 여부에 따라 출력 문자열 또는 없음
@@ -22,7 +23,21 @@ export default function main(
         .map((line: string) => line.trim())
         .join("\n");
 
-    const parsed = parse(code);
+    let parsed;
+    let error;
+    let errorCode;
+    if (cli) {
+        parsed = parse(code, (...args) =>
+            process.stderr.write(exitMessage(...args)[1])
+        );
+    } else {
+        parsed = parse(code, (...args) => {
+            let [code, msg] = exitMessage(...args);
+            errorCode.push(code);
+            error.push(msg);
+        });
+    }
+
     if (parseOut) {
         fs.writeFile(
             parseOut,
@@ -38,21 +53,23 @@ export default function main(
     if (cli) {
         return run(
             recursion,
-            (msg) => {
-                process.stdout.write(msg.toString());
-            },
+            (msg) => process.stdout.write(msg.toString()),
+            (...args) => process.stderr.write(exitMessage(...args)[1]),
             ...parsed
         );
     } else {
         const output: string[] = [];
         run(
             recursion,
-            (msg) => {
-                output.push(msg.toString());
+            (msg) => output.push(msg.toString()),
+            (...args) => {
+                let [code, msg] = exitMessage(...args);
+                errorCode.push(code);
+                error.push(msg);
             },
             ...parsed
         );
-        return output;
+        return [output, error];
     }
 }
 

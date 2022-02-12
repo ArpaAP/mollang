@@ -1,5 +1,3 @@
-import exitMessage from "./exit";
-
 //1: Int Literal
 //2: Variable with Initialize
 //3: Print
@@ -29,7 +27,8 @@ function parseLiteral(script: string, i: number): [number, number] {
 }
 
 export default function parse(
-    script: string
+    script: string,
+    error: (...args: [number, string, [number, number] | []]) => void
 ): [[number, number, number][], number[]] {
     let tokens: [number, number, number][] = [];
     let line_backpoint: number[] = [];
@@ -44,7 +43,7 @@ export default function parse(
             i = ret[1];
             i--;
         } else if (script[i] === ".") {
-            exitMessage(1, ".", [line_number, i]);
+            error(1, ".", [line_number, i]);
         } else if (script[i] === "몰" || script[i] === "모") {
             let length = 1;
             while (
@@ -72,7 +71,7 @@ export default function parse(
                     tokens.pop();
                     tokens.push([4, length, -1]);
                 } else {
-                    exitMessage(3, "루", [line_number, i]);
+                    error(3, "루", [line_number, i]);
                 }
             } else {
                 tokens.push([3, -1, -1]);
@@ -90,7 +89,7 @@ export default function parse(
                 if_jumppoint.push(tokens.length);
                 tokens.push([9, -1, -1]);
             } else {
-                exitMessage(2, "?행", [line_number, i]);
+                error(2, "?행", [line_number, i]);
             }
             i += 2;
         } else if (script[i] === "털") {
@@ -102,7 +101,7 @@ export default function parse(
                 tokens[if_jumppoint[0]][1] = tokens.length;
                 if_jumppoint.pop();
             } else {
-                exitMessage(2, "?자", [line_number, i]);
+                error(2, "?자", [line_number, i]);
             }
             i += 2;
         } else if (script[i] === "0") {
@@ -140,19 +139,19 @@ export default function parse(
                 }
                 tokens.push([10, mode, value]);
             } else {
-                exitMessage(2, "ㅅ0", [line_number, i]);
+                error(2, "ㅅ0", [line_number, i]);
             }
         } else if (script[i] === "자") {
             if (i + 1 < script.length && script[i + 1] === "!") {
                 tokens.push([7, -1, -1]);
             } else {
-                exitMessage(2, "!", [line_number, i]);
+                error(2, "!", [line_number, i]);
             }
         } else if (script[i] === "\n") {
             line_number++;
             line_backpoint.push(tokens.length);
         } else if (script[i] !== " ") {
-            exitMessage(4, script[i], [line_number, i]);
+            error(4, script[i], [line_number, i]);
         }
     }
     return [tokens, line_backpoint];
