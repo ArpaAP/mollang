@@ -1,0 +1,15 @@
+에러가 발생했을때 프로그램은 다음을 리턴합니다:
+
+COMPILICATION ERROR(컴파일 에러): 문법 에러 등을 포함합니다.
+
++1: UNKNOWN TOKEN: 존재하지 않는 명령어
++2: MISSING PAIR: 
++3: MISSING PARAMETER: 
+
+RUNTIME ERROR(런타임 에러): 
+
+-1: UNDEFINED_VARIABLE: 정의되지 않은 변수
+-2: WRONG_EXPRESSION: 잘못된 연산식
+-3: WRONG_MULTIPLY: 잘못된 곱셈 위치
+-4: WRONG_PARAMETER: 
+-5: MISSING_MID_PARAMETER: 
