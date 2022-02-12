@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import * as fs from "fs";
 import { Command } from "commander";
-import parse from "./parse.js";
-import run from "./runtime.js";
+import parse from "./parse";
+import run from "./runtime";
 
 async function main(code: string, parseOut: string) {
     code = code

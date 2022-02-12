@@ -1,4 +1,4 @@
-import exitMessage from "./exit.js";
+import exitMessage from "./exit";
 
 //1: Int Literal
 //2: Variable with Initialize

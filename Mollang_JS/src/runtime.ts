@@ -1,4 +1,4 @@
-import exitMessage from "./exit.js";
+import exitMessage from "./exit";
 import * as readline from "readline-sync";
 
 export default function run(
