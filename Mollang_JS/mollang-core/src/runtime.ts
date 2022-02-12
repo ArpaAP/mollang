@@ -1,9 +1,8 @@
-import * as readline from "readline-sync";
-
 export default function run(
-    recursionMax: number,
+    maxRecursion: number,
     output: (msg: string) => void,
     error: (...args: [number, string, [number, number] | []]) => void,
+    inputFn: () => string,
     tokens: [number, number, number][],
     line_backpoint: number[]
 ) {
@@ -38,7 +37,7 @@ export default function run(
             runtime.pop();
             characterPrint = false;
         } else if (f === 4) {
-            let tmp = Number(readline.question());
+            let tmp = Number(inputFn());
             vars[s] = tmp;
         } else if (f === 5) {
             characterPrint = true;
@@ -48,7 +47,7 @@ export default function run(
             }
             if (recursion[runtime[0]] === undefined) {
                 recursion[runtime[0]] = 1;
-            } else if (recursion[runtime[0]] === recursionMax) {
+            } else if (recursion[runtime[0]] === maxRecursion) {
                 error(5, "", [runtime[0] - 1, 0]);
                 return 0;
             } else {

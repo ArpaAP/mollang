@@ -1,0 +1,20 @@
+{
+    "name": "mollang-core",
+    "version": "1.0.0",
+    "description": "Node.JS 몰?루 언어 코어",
+    "main": "dist/src/index.js",
+    "scripts": {
+        "build": "tsc -p tsconfig.json"
+    },
+    "keywords": [
+        "esoteric",
+        "language",
+        "molu"
+    ],
+    "author": "kndlr",
+    "license": "ISC",
+    "dependencies": {
+        "@types/node": "^17.0.17",
+        "typescript": "^4.5.5"
+    }
+}

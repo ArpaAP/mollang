@@ -3,7 +3,7 @@
   <img src="https://raw.githubusercontent.com/ArpaAP/mollang/master/mollu.gif" width="200"></img>
   <br>
   <br>
-  <span>Mollang.JS - 몰?루 프로그래밍 언어 Node 구현체</span>
+  <span>Mollang.JS - Node.JS 몰?루 언어 코어</span>
   <br>
   <br>
   <a href="https://github.com/ArpaAP/mollang">
@@ -12,8 +12,11 @@
   <a href="https://github.com/ArpaAP/mollang">
     <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/arpaap/mollang?style=for-the-badge&logo=github">
   </a>
-  <a href="https://www.npmjs.com/package/mollang">
-    <img alt="GitHub Repo stars" src="https://img.shields.io/npm/v/mollang?style=for-the-badge&logo=npm">
+  <a href="https://www.npmjs.com/package/mollang-core">
+    <img alt="GitHub Repo stars" src="https://img.shields.io/npm/v/mollang-core?style=for-the-badge&logo=npm&label=CORE NPM">
+  </a>
+  <a href="https://www.npmjs.com/package/mollang-core">
+    <img alt="GitHub Repo stars" src="https://img.shields.io/npm/v/mollang?style=for-the-badge&logo=npm&label=CLI NPM">
   </a>
   <br>
   <br>
