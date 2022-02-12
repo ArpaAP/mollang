@@ -32,5 +32,5 @@ int main(int argc, char* argv[]) {
 	if (show_parsed) show_compiled(token, src);
 
 	ENV default_env = ENV();
-	run(default_env, token, src);
+	return run(default_env, token, src);
 }
