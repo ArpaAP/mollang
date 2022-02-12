@@ -1,6 +1,6 @@
 {
     "name": "mollang-core",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "Node.JS 몰?루 언어 코어",
     "main": "dist/src/index.js",
     "scripts": {
