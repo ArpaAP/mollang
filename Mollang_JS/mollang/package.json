@@ -1,0 +1,28 @@
+{
+    "name": "mollang",
+    "version": "1.0.4",
+    "description": "Node.JS 몰?루 언어 CLI",
+    "main": "dist/src/index.js",
+    "bin": "dist/src/index.js",
+    "scripts": {
+        "start": "node dist/src/index.js",
+        "build": "tsc -p tsconfig.json"
+    },
+    "author": "kndlr",
+    "license": "ISC",
+    "keywords": [
+        "esoteric",
+        "language",
+        "molu"
+    ],
+    "dependencies": {
+        "@types/node": "^17.0.17",
+        "commander": "^9.0.0",
+        "mollang-core": "^1.0.4",
+        "readline-sync": "^1.4.10",
+        "typescript": "^4.5.5"
+    },
+    "devDependencies": {
+        "@types/readline-sync": "^1.4.4"
+    }
+}
