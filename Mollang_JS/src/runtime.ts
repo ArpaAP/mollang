@@ -3,6 +3,7 @@ import * as readline from "readline-sync";
 
 export default function run(
     recursionMax: number,
+    output: (msg: string) => void,
     tokens: [number, number, number][],
     line_backpoint: number[]
 ) {
@@ -30,11 +31,9 @@ export default function run(
                 exitMessage(3, "", []);
             }
             if (characterPrint) {
-                process.stdout.write(
-                    String.fromCharCode(runtime[runtime.length - 1])
-                );
+                output(String.fromCharCode(runtime[runtime.length - 1]));
             } else {
-                process.stdout.write(String(runtime[runtime.length - 1]));
+                output(String(runtime[runtime.length - 1]));
             }
             runtime.pop();
             characterPrint = false;

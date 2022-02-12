@@ -2,7 +2,7 @@
     "name": "mollang",
     "version": "1.0.1",
     "description": "몰?루 프로그래밍 언어",
-    "main": "src/index.ts",
+    "main": "dist/src/index.js",
     "bin": "dist/src/index.js",
     "scripts": {
         "start": "node dist/src/index.js",
