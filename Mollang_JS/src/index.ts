@@ -4,7 +4,7 @@ import { Command } from "commander";
 import parse from "./parse";
 import run from "./runtime";
 
-async function main(code: string, parseOut: string) {
+async function main(code: string, parseOut: string, recursion: number) {
     code = code
         .split("\n")
         .map((line: string) => line.trim())
@@ -23,7 +23,7 @@ async function main(code: string, parseOut: string) {
             }
         );
     }
-    return run(...parsed);
+    return run(recursion, ...parsed);
 }
 
 const program = new Command();
@@ -31,6 +31,12 @@ program
     .name("mollang")
     .argument("<filename>")
     .option("-p, --parse <outfile>", "Write parsed data to file", false)
+    .option(
+        "-r, --recursion <times>",
+        "Max number of recursions",
+        Number,
+        100000
+    )
     .action(async (fn: string, options) => {
         if (fn.endsWith(".molu")) {
             if (fs.existsSync(fn)) {
@@ -38,7 +44,7 @@ program
                     if (err) {
                         throw err;
                     } else {
-                        main(data, options.parse);
+                        main(data, options.parse, options.recursion);
                     }
                 });
             } else {

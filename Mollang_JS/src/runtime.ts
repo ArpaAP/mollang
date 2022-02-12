@@ -2,11 +2,13 @@ import exitMessage from "./exit";
 import * as readline from "readline-sync";
 
 export default function run(
+    recursionMax: number,
     tokens: [number, number, number][],
     line_backpoint: number[]
 ) {
     let runtime = [];
     let vars: number[] = [];
+    let recursion: number[] = [];
     let characterPrint = false;
 
     for (let i = 0; i < tokens.length; i++) {
@@ -44,6 +46,14 @@ export default function run(
         } else if (f === 7) {
             if (!runtime) {
                 exitMessage(3, "", []);
+            }
+            if (recursion[runtime[0]] === undefined) {
+                recursion[runtime[0]] = 1;
+            } else if (recursion[runtime[0]] === recursionMax) {
+                exitMessage(5, "", [runtime[0] - 1, 0]);
+                return 0;
+            } else {
+                recursion[runtime[0]] += 1;
             }
             i = line_backpoint[runtime[0] - 1] - 1;
             runtime.pop();
