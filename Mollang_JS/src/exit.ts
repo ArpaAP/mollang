@@ -25,6 +25,13 @@ export default function exitMessage(
                 posMsg + data + " 인식할 수 없는 토큰입니다.\n"
             );
             break;
+        case 5:
+            process.stderr.write(
+                posMsg +
+                    data +
+                    " 반복 가능 횟수를 초과했습니다. (무한 반복 감지)\n"
+            );
+            break;
         default:
             process.stderr.write(
                 posMsg + data + " 알 수 없는 오류가 발생했습니다.\n"
