@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import * as fs from "fs";
 import { Command } from "commander";
 import parse from "./parse";
