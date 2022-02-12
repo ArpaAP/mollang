@@ -5,6 +5,7 @@
         "outDir": "./dist",
         "rootDir": ".",
         "strict": true,
-        "moduleResolution": "node"
+        "moduleResolution": "node",
+        "declaration": true
     }
 }
