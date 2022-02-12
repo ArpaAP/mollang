@@ -37,7 +37,7 @@ export default function main(
     run(
         maxRecursion,
         (msg) => {
-            outputFn && outputFn(msg);
+            outputFn && outputFn(msg.toString());
             outputs.push(msg.toString());
         },
         (...args) => {
