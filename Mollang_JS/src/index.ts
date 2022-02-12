@@ -69,7 +69,7 @@ export default function main(
             },
             ...parsed
         );
-        return [output, error];
+        return [output, errorCode, error];
     }
 }
 
