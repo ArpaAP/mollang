@@ -4,11 +4,8 @@ import exitMessage from "./exit";
 
 /**
  * Mollang 실행
- * @param code 실행할 Mollang 코드
- * @param maxRecursion GOTO 반복 최대 가능 횟수 (100000)
- * @param outputFn 시스템 출력 함수 (string 전달)
- * @param errorFn 시스템 오류 함수 ([number, string] 전달)
- * @param inputFn 사용자 입력 함수 (string 반환)
+ * @param code - 실행할 Mollang 코드
+ * @param options - 옵션
  * @returns [출력, 오류 코드, 오류, 파싱 결과]
  */
 export default function main(
