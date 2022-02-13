@@ -17,7 +17,7 @@ export default function main(
         errorFn?: (code: number, position: number) => void;
         inputFn: () => string;
     }
-) {
+): [string[], number[], number[], string] {
     const { maxRecursion = 100000, outputFn, errorFn, inputFn } = options;
 
     code = code
