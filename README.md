@@ -258,3 +258,8 @@ npx mollang <molu 파일 경로>
 [몰랭 웹 인터프리터](https://github.com/ArpaAP/molu-web)는 몰랭 프로그래밍 언어를 웹상에서 실시간으로 실행해볼 수 있는 대화형 인터프리터 웹사이트입니다.
 
 **웹에서 몰랭 코드 실행해보기:** https://molu.vercel.app
+
+# 5. 기타
+**이 프로젝트가 마음에 드시나요?** 저희가 더욱 발전할 수 있도록 도와주세요! 후원하기:   
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/P5P8AJ8G2)
