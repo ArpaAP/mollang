@@ -1,19 +1,20 @@
-import parse from "./parse";
-import run from "./runtime";
-import exitMessage from "./exit";
+import compile from "./compile";
+import run, { ENV } from "./runtime";
+import tokenize from "./tokenizer";
+import show from "./result";
 
 /**
  * Mollang 실행
  * @param code - 실행할 Mollang 코드
  * @param options - 옵션
- * @returns [출력, 오류 코드, 오류, 파싱 결과]
+ * @returns [출력, 오류 코드, 파싱 결과]
  */
 export default function main(
     code: string,
     options: {
         maxRecursion?: number;
         outputFn?: (msg: string) => void;
-        errorFn?: (code: number, msg: string) => void;
+        errorFn?: (code: number) => void;
         inputFn: () => string;
     }
 ) {
@@ -26,28 +27,32 @@ export default function main(
 
     const outputs: string[] = [];
     const errorCodes: number[] = [];
-    const errors: string[] = [];
 
-    const parsed = parse(code, (...args) => {
-        const [code, msg] = exitMessage(...args);
-        errorFn && errorFn(code, msg);
-        errorCodes.push(code);
-        errors.push(msg);
+    const data = tokenize(code, (errorCode) => {
+        errorFn && errorFn(errorCode);
+        errorCodes.push(errorCode);
     });
+    const compiled = compile(data, (errorCode) => {
+        errorFn && errorFn(errorCode);
+        errorCodes.push(errorCode);
+    });
+
+    const defaultEnv = new ENV();
+
     run(
+        defaultEnv,
+        data,
+        compiled,
         maxRecursion,
         (msg) => {
             outputFn && outputFn(msg.toString());
             outputs.push(msg.toString());
         },
-        (...args) => {
-            let [code, msg] = exitMessage(...args);
-            errorFn && errorFn(code, msg);
-            errorCodes.push(code);
-            errors.push(msg);
+        (errorCode) => {
+            errorFn && errorFn(errorCode);
+            errorCodes.push(errorCode);
         },
-        inputFn,
-        ...parsed
+        inputFn
     );
-    return [outputs, errorCodes, errors, parsed];
+    return [outputs, errorCodes, show(data, compiled)];
 }
