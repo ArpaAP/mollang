@@ -1,6 +1,6 @@
 import { Errors } from "./exit";
 
-let error: (code: number) => void;
+let error: (code: number, position: number) => void;
 
 export class KEY {
     static LITERAL = -1;
@@ -13,7 +13,7 @@ export class KEY {
 export class LiteralParsed {
     text: string;
     content: number[] = [];
-    constructor(token: string) {
+    constructor(token: string, position: number) {
         this.text = token;
         for (let i = 0; i < token.length; i++) {
             switch (token[i]) {
@@ -36,13 +36,13 @@ export class LiteralParsed {
                         t++;
                     }
                     if (token[t] !== "올") {
-                        error(Errors.WRONG_EXPRESSION);
+                        error(Errors.WRONG_EXPRESSION, position);
                     }
                     this.content.push(len);
                     i = t;
                     break;
                 default:
-                    error(Errors.WRONG_EXPRESSION);
+                    error(Errors.WRONG_EXPRESSION, position);
             }
         }
     }
@@ -50,6 +50,7 @@ export class LiteralParsed {
 
 export class Tokenized {
     tokens: number[][] = [];
+    tokens_position: number[] = [];
     literals: LiteralParsed[] = [];
     gotoPoint: number[] = [];
 }
@@ -74,16 +75,21 @@ function literalToken(script: string, idx: number) {
     return length;
 }
 
-export default function tokenize(script: string, errorFn: (code: number) => void) {
+export default function tokenize(
+    script: string,
+    errorFn: (code: number, position: number) => void
+) {
     error = errorFn;
     let ret: Tokenized = new Tokenized();
     ret.gotoPoint.push(0);
     let closePair: [number, string][] = [];
+    let line = 0;
     for (let i = 0; i < script.length; i++) {
         let cur = script[i];
         let foundToken: boolean = false;
         if (cur === "\n") {
             ret.gotoPoint.push(ret.tokens.length);
+            line++;
             continue;
         }
         if (cur === " ") {
@@ -92,7 +98,8 @@ export default function tokenize(script: string, errorFn: (code: number) => void
         if (literal_char.includes(cur)) {
             let length = literalToken(script, i);
             ret.tokens.push([KEY.LITERAL, ret.literals.length, -1]);
-            ret.literals.push(new LiteralParsed(script.slice(i, i + length)));
+            ret.tokens_position.push(line);
+            ret.literals.push(new LiteralParsed(script.slice(i, i + length), line));
             i += length - 1;
             continue;
         }
@@ -110,6 +117,7 @@ export default function tokenize(script: string, errorFn: (code: number) => void
             if (script.slice(i, i + keywords[t].length) === keywords[t]) {
                 foundToken = true;
                 ret.tokens.push([t, -1, -1]);
+                ret.tokens_position.push(line);
                 i += keywords[t].length - 1;
                 break;
             }
@@ -122,6 +130,7 @@ export default function tokenize(script: string, errorFn: (code: number) => void
                 foundToken = true;
                 closePair.push([ret.tokens.length, pair_keywords[t][1]]);
                 ret.tokens.push([KEY.PAIR_KEYWORD + t, -1, -1]);
+                ret.tokens_position.push(line);
                 i += pair_keywords[t][0].length - 1;
                 break;
             }
@@ -129,10 +138,10 @@ export default function tokenize(script: string, errorFn: (code: number) => void
         if (foundToken) {
             continue;
         }
-        error(Errors.UNKNOWN_TOKEN);
+        error(Errors.UNKNOWN_TOKEN, line);
     }
     if (closePair.length > 0) {
-        error(Errors.MISSING_PAIR);
+        error(Errors.MISSING_PAIR, line);
     }
 
     return ret;

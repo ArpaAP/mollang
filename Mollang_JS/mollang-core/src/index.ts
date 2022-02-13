@@ -7,14 +7,14 @@ import show from "./result";
  * Mollang 실행
  * @param code - 실행할 Mollang 코드
  * @param options - 옵션
- * @returns [출력, 오류 코드, 파싱 결과]
+ * @returns [출력, 오류 코드, 오류 위치, 파싱 결과]
  */
 export default function main(
     code: string,
     options: {
         maxRecursion?: number;
         outputFn?: (msg: string) => void;
-        errorFn?: (code: number) => void;
+        errorFn?: (code: number, position: number) => void;
         inputFn: () => string;
     }
 ) {
@@ -27,14 +27,17 @@ export default function main(
 
     const outputs: string[] = [];
     const errorCodes: number[] = [];
+    const errorPositions: number[] = [];
 
-    const data = tokenize(code, (errorCode) => {
-        errorFn && errorFn(errorCode);
+    const data = tokenize(code, (errorCode, position) => {
+        errorFn && errorFn(errorCode, position);
         errorCodes.push(errorCode);
+        errorPositions.push(position);
     });
-    const compiled = compile(data, (errorCode) => {
-        errorFn && errorFn(errorCode);
+    const compiled = compile(data, (errorCode, position) => {
+        errorFn && errorFn(errorCode, position);
         errorCodes.push(errorCode);
+        errorPositions.push(position);
     });
 
     const defaultEnv = new ENV();
@@ -48,11 +51,12 @@ export default function main(
             outputFn && outputFn(msg.toString());
             outputs.push(msg.toString());
         },
-        (errorCode) => {
-            errorFn && errorFn(errorCode);
+        (errorCode, position) => {
+            errorFn && errorFn(errorCode, position);
             errorCodes.push(errorCode);
+            errorPositions.push(position);
         },
         inputFn
     );
-    return [outputs, errorCodes, show(data, compiled)];
+    return [outputs, errorCodes, errorPositions, show(data, compiled)];
 }
