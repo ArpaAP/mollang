@@ -47,6 +47,7 @@ vector<pair<wstring, wstring>> pair_keywords = { {L"¾Æ", L"·ç"}, {L"Àº?Çà", L"ÅÐ
 set<ll> front_parametered = { 0, 1, PAIR_KEYWORD + 1 };
 set<ll> back_parametered = { 2 };
 set<ll> nonNumberParam = { 0 };
+set<ll> not_always_require_parameter = { 2 };
 
 ll literalToken(wstring& script, ll idx) {
 	ll length = 0;

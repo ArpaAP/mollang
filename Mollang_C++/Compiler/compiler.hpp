@@ -16,13 +16,18 @@ Compiled compile(Tokenized x) {
 		if (nonNumberParam.count(cur)) continue;
 
 		if (back_parametered.count(cur)) {
-			if (i == x.tokens.size() - 1) ErrorCode(MISSING_PARAMETER);
+			if (i == x.tokens.size() - 1) {
+				if (!not_always_require_parameter.count(cur))
+					ErrorCode(MISSING_PARAMETER);
+				continue;
+			}
 			if (get<0>(x.tokens[i + 1]) == LITERAL) {
 				if (ret.literal_owned[get<1>(x.tokens[i + 1])])
 					ErrorCode(MISSING_PARAMETER);
 				ret.literal_owned[get<1>(x.tokens[i + 1])] = true;
 			}
-			else ErrorCode(MISSING_PARAMETER);
+			else if (!not_always_require_parameter.count(cur))
+				ErrorCode(MISSING_PARAMETER);
 		}
 		if (front_parametered.count(cur)) {
 			if (i == 0) ErrorCode(MISSING_PARAMETER);

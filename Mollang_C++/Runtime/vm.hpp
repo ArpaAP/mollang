@@ -99,7 +99,9 @@ ll run(ENV& env, Tokenized& x, Compiled& y) {
 				env.runtimeStack.pop();
 			}
 			if (f == 2) { //0¤µ0
-				return calc(env, x.literals[get<1>(x.tokens[i + 1])], 0);
+				if (i + 1 < x.tokens.size() && get<0>(x.tokens[i + 1]) == LITERAL)
+					return calc(env, x.literals[get<1>(x.tokens[i + 1])], 0);
+				else return 0;
 			}
 		}
 	}
