@@ -42,8 +42,8 @@ export default function compile(
             }
         }
         if (front_parametered.includes(cur)) {
-            if (i == 0) error(Errors.MISSING_PARAMETER, data.tokens_position[i]);
-            if (data.tokens[i - 1][0] == KEY.LITERAL) {
+            if (i === 0) error(Errors.MISSING_PARAMETER, data.tokens_position[i]);
+            if (data.tokens[i - 1][0] === KEY.LITERAL) {
                 if (ret.literal_owned[data.tokens[i - 1][1]]) {
                     error(Errors.MISSING_PARAMETER, data.tokens_position[i]);
                 }
@@ -55,7 +55,7 @@ export default function compile(
         if (cur >= KEY.PAIR_KEYWORD) {
             let t = i + 1;
             while (t <= data.tokens[i][1]) {
-                if (data.tokens[t][0] == KEY.LITERAL) {
+                if (data.tokens[t][0] === KEY.LITERAL) {
                     ret.literal_owned[data.tokens[t][1]] = true;
                 }
                 t++;

@@ -126,7 +126,7 @@ export default function tokenize(
             continue;
         }
         for (let t = 0; t < pair_keywords.length; t++) {
-            if (script.slice(i, i + pair_keywords[t][0].length) == pair_keywords[t][0]) {
+            if (script.slice(i, i + pair_keywords[t][0].length) === pair_keywords[t][0]) {
                 foundToken = true;
                 closePair.push([ret.tokens.length, pair_keywords[t][1]]);
                 ret.tokens.push([KEY.PAIR_KEYWORD + t, -1, -1]);
