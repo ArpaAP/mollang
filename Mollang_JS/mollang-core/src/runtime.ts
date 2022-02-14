@@ -30,7 +30,7 @@ function calc(env: ENV, data: LiteralParsed, idx: number, position: number) {
         } else if (data.content[i] == KEY.MINUS) {
             cur--;
         } else {
-            if (data.content[i] in env.variables) {
+            if (env.variables.get(data.content[i])) {
                 cur += Number(env.variables.get(data.content[i]));
             } else {
                 error(Errors.UNDEFINED_VARIABLE, position);
@@ -54,7 +54,7 @@ function assign(env: ENV, data: LiteralParsed, position: number) {
         return;
     }
 
-    if (data.content[0] in env.variables) {
+    if (env.variables.get(data.content[0])) {
         let tmp = Number(env.variables.get(data.content[0]));
         if (data.content[1] == KEY.MULTIPLY) {
             let value = calc(env, data, 2, position);
