@@ -88,6 +88,9 @@ export default function run(
     for (let i = 0; i < data.tokens.length; i++) {
         let token = data.tokens[i];
         if (token[0] === KEY.LITERAL) {
+            if (compiled.no_calc[token[1]]) {
+                continue;
+            }
             if (compiled.literal_owned[token[1]]) {
                 env.runtimeStack.push(
                     calc(env, data.literals[token[1]], 0, data.tokens_position[i])

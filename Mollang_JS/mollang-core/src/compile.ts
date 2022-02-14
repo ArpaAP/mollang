@@ -5,10 +5,12 @@ let error: (code: number, position: number) => void;
 
 export class Compiled {
     literal_owned: boolean[] = [];
+    no_calc: boolean[] = [];
 }
 
 const front_parametered = [0, 1, KEY.PAIR_KEYWORD + 1];
 const back_parametered = [2];
+const non_number_parameter = [0];
 const not_always_require_param = [2];
 
 export default function compile(
@@ -19,6 +21,7 @@ export default function compile(
     let ret = new Compiled();
     for (let i = 0; i < data.literals.length; i++) {
         ret.literal_owned.push(false);
+        ret.no_calc.push(false);
     }
     for (let i = 0; i < data.tokens.length; i++) {
         let cur = data.tokens[i][0];
@@ -37,6 +40,9 @@ export default function compile(
                     error(Errors.MISSING_PARAMETER, data.tokens_position[i]);
                 }
                 ret.literal_owned[data.tokens[i + 1][1]] = true;
+                if (non_number_parameter.includes(cur)) {
+                    ret.no_calc[data.tokens[i + 1][1]] = true;
+                }
             } else if (!not_always_require_param.includes(cur)) {
                 error(Errors.MISSING_PARAMETER, data.tokens_position[i]);
             }
@@ -48,6 +54,9 @@ export default function compile(
                     error(Errors.MISSING_PARAMETER, data.tokens_position[i]);
                 }
                 ret.literal_owned[data.tokens[i - 1][1]] = true;
+                if (non_number_parameter.includes(cur)) {
+                    ret.no_calc[data.tokens[i - 1][1]] = true;
+                }
             } else {
                 error(Errors.MISSING_PARAMETER, data.tokens_position[i]);
             }
