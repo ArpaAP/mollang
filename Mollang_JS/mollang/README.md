@@ -12,8 +12,11 @@
   <a href="https://github.com/ArpaAP/mollang">
     <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/arpaap/mollang?style=for-the-badge&logo=github">
   </a>
-  <a href="https://www.npmjs.com/package/mollang">
-    <img alt="GitHub Repo stars" src="https://img.shields.io/npm/v/mollang?style=for-the-badge&logo=npm">
+  <a href="https://www.npmjs.com/package/mollang-core">
+    <img alt="GitHub Repo stars" src="https://img.shields.io/npm/v/mollang-core?style=for-the-badge&logo=npm&label=CORE NPM">
+  </a>
+  <a href="https://www.npmjs.com/package/mollang-core">
+    <img alt="GitHub Repo stars" src="https://img.shields.io/npm/v/mollang?style=for-the-badge&logo=npm&label=CLI NPM">
   </a>
   <br>
   <br>
