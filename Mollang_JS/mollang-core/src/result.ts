@@ -4,7 +4,7 @@ import { Compiled } from "./compile";
 export default function show(data: Tokenized, compiled: Compiled) {
     let ret = `${"=".repeat(20)}\nTOKENS\n`;
     for (let i = 0; i < data.tokens.length; i++) {
-        ret += `${i}: ${data.tokens[i][0]} ${data.tokens[i][1]}\n`;
+        ret += `${i}: ${data.tokens[i].join(" ")}\n`;
     }
     ret += "\nLITERALS\n";
     for (let i = 0; i < data.literals.length; i++) {
