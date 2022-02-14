@@ -29,10 +29,10 @@ function calc(env: ENV, data: LiteralParsed, idx: number, position: number) {
         } else if (data.content[i] === KEY.MINUS) {
             cur--;
         } else {
-            if (env.variables.get(data.content[i])) {
-                cur += Number(env.variables.get(data.content[i]));
-            } else {
+            if (env.variables.get(data.content[i]) === undefined) {
                 error(Errors.UNDEFINED_VARIABLE, position);
+            } else {
+                cur += Number(env.variables.get(data.content[i]));
             }
         }
     }
@@ -53,7 +53,7 @@ function assign(env: ENV, data: LiteralParsed, position: number) {
         return;
     }
 
-    if (env.variables.get(data.content[0])) {
+    if (env.variables.get(data.content[0]) !== undefined) {
         let tmp = Number(env.variables.get(data.content[0]));
         if (data.content[1] === KEY.MULTIPLY) {
             let value = calc(env, data, 2, position);
@@ -129,6 +129,9 @@ export default function run(
         } else {
             if (token[0] === 0) {
                 let tmp = Number(inputFn());
+                if (i === 0) {
+                    error(Errors.MISSING_PARAMETER, data.tokens_position[i]);
+                }
                 if (data.literals[data.tokens[i - 1][1]].content.length >= 2) {
                     error(Errors.WRONG_PARAMETER, data.tokens_position[i]);
                 }
