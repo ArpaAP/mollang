@@ -28,6 +28,7 @@ export class LiteralParsed {
                     break;
                 case "몰":
                     this.content.push(1);
+                    break;
                 case "모":
                     let len = 2;
                     let t = i + 1;
