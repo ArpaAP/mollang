@@ -87,7 +87,6 @@ export default function tokenize(
     let line = 0;
     for (let i = 0; i < script.length; i++) {
         let cur = script[i];
-        let foundToken: boolean = false;
         if (cur === "\n") {
             ret.gotoPoint.push(ret.tokens.length);
             line++;
@@ -110,10 +109,12 @@ export default function tokenize(
                 closePair[closePair.length - 1][1]
             ) {
                 ret.tokens[closePair[closePair.length - 1][0]][1] = ret.tokens.length - 1;
+                i += closePair[closePair.length - 1][1].length - 1;
                 closePair.pop();
                 continue;
             }
         }
+        let foundToken = false;
         for (let t = 0; t < keywords.length; t++) {
             if (script.slice(i, i + keywords[t].length) === keywords[t]) {
                 foundToken = true;
