@@ -1,13 +1,12 @@
-import tokenize, { Tokenized, LiteralParsed, KEY } from "./tokenizer";
-import compile, { Compiled } from "./compile";
+import { Tokenized, LiteralParsed, KEY } from "./tokenizer";
+import { Compiled } from "./compile";
 import { Errors } from "./exit";
-import { getOutputFileNames } from "typescript";
 
 let error: (code: number, position: number) => void;
 
 export class ENV {
-    variables = new Map<number, number>(); //BigInt후보
-    runtimeStack: number[] = []; // BigInt 후보
+    variables = new Map<number, number>();
+    runtimeStack: number[] = [];
 }
 
 function calc(env: ENV, data: LiteralParsed, idx: number, position: number) {
@@ -19,7 +18,7 @@ function calc(env: ENV, data: LiteralParsed, idx: number, position: number) {
     }
 
     let ans = 1;
-    let cur = 0; // BigInt 후보
+    let cur = 0;
 
     for (let i = idx; i < data.content.length; i++) {
         if (data.content[i] == KEY.MULTIPLY) {

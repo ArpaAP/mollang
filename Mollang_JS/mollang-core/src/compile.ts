@@ -1,4 +1,4 @@
-import tokenize, { Tokenized, LiteralParsed, KEY } from "./tokenizer";
+import { Tokenized, KEY } from "./tokenizer";
 import { Errors } from "./exit";
 
 let error: (code: number, position: number) => void;
