@@ -6,10 +6,11 @@ using namespace std;
 class Compiled {
 public:
 	vector<bool> literal_owned;
+	vector<bool> no_calc;
 };
 
 Compiled compile(Tokenized x) {
-	Compiled ret = { vector<bool>(x.literals.size()) };
+	Compiled ret = { vector<bool>(x.literals.size()), vector<bool>(x.literals.size()) };
 	for (ll i = 0; i < x.tokens.size(); i++) {
 		ll cur = get<0>(x.tokens[i]);
 		if (cur == -1) continue;
@@ -24,6 +25,8 @@ Compiled compile(Tokenized x) {
 				if (ret.literal_owned[get<1>(x.tokens[i + 1])])
 					ErrorCode(MISSING_PARAMETER, x.tokens_position[i]);
 				ret.literal_owned[get<1>(x.tokens[i + 1])] = true;
+				if (non_number_parameter.count(cur))
+					ret.no_calc[get<1>(x.tokens[i + 1])] = true;
 			}
 			else if (!not_always_require_parameter.count(cur))
 				ErrorCode(MISSING_PARAMETER, x.tokens_position[i]);
@@ -34,6 +37,8 @@ Compiled compile(Tokenized x) {
 				if (ret.literal_owned[get<1>(x.tokens[i - 1])])
 					ErrorCode(MISSING_PARAMETER, x.tokens_position[i]);
 				ret.literal_owned[get<1>(x.tokens[i - 1])] = true;
+				if(non_number_parameter.count(cur))
+					ret.no_calc[get<1>(x.tokens[i - 1])] = true;
 			}
 			else ErrorCode(MISSING_PARAMETER, x.tokens_position[i]);
 		}

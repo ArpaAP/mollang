@@ -60,6 +60,7 @@ ll run(ENV& env, Tokenized& x, Compiled& y) {
 	for (ll i = 0; i < x.tokens.size(); i++) {
 		ll f = get<0>(x.tokens[i]), s = get<1>(x.tokens[i]), t = get<2>(x.tokens[i]);
 		if (f == LITERAL) {
+			if (y.no_calc[s]) continue;
 			if (y.literal_owned[s])
 				env.runtimeStack.push(calc(env, x.literals[s], 0, x.tokens_position[i]));
 			else assign(env, x.literals[s], x.tokens_position[i]);
@@ -87,6 +88,8 @@ ll run(ENV& env, Tokenized& x, Compiled& y) {
 		}
 		else {
 			if (f == 0) { //·ç?
+				if (i == 0)
+					ErrorCode(MISSING_PARAMETER, x.tokens_position[i]);
 				if (x.literals[get<1>(x.tokens[i - 1])].content.size() >= 2)
 					ErrorCode(WRONG_PARAMETER, x.tokens_position[i]);
 				if (x.literals[get<1>(x.tokens[i - 1])].content[0] <= 0)
