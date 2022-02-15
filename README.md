@@ -271,7 +271,12 @@ npx mollang <molu 파일 경로>
 
 **웹에서 몰랭 코드 실행해보기:** https://molu.vercel.app
 
-# 5. 기타
+# 5. 업데이트 예정인 것들(v1.2)
+- 함수
+- 반복문
+- 힙 메모리 접근 및 연산(정수힙, 문자열힙 지원 예정)
+
+# 6. 기타
 **이 프로젝트가 마음에 드시나요?** 저희가 더욱 발전할 수 있도록 도와주세요! 후원하기:   
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/P5P8AJ8G2)
