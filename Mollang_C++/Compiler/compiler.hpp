@@ -10,7 +10,7 @@ public:
 	vector<pair<ll, bool>> type; //result type, process using float
 };
 
-Compiled compile(Tokenized data) {
+Compiled compile(Tokenized& data) {
 	Compiled ret = {
 		vector<bool>(data.literals.size()),
 		vector<bool>(data.literals.size()),
@@ -42,6 +42,8 @@ Compiled compile(Tokenized data) {
 					ret.no_calc[get<1>(data.tokens[i + 1])] = true;
 				if (all_type_parameter.count(cur))
 					ret.type[get<1>(data.tokens[i + 1])].first = ALLTYPE;
+				if (back_function_parameter.count(cur))
+					data.literals[get<1>(data.tokens[i + 1])].is_parameter_set = true;
 			}
 			else if (!not_always_require_parameter.count(cur))
 				ErrorCode(MISSING_PARAMETER, data.tokens_position[i]);
@@ -82,7 +84,7 @@ void show_compiled(Tokenized& tmp, Compiled& tmp2) {
 	}
 	wcout << "LITERALS\n";
 	for (ll i = 0; i < tmp.literals.size(); i++) {
-		wcout << i << ": " << tmp.literals[i].text << ' ' << tmp2.literal_owned[i] << '\n';
+		wcout << i << ": " << tmp.literals[i].text << ' ' << tmp2.literal_owned[i] << ' ' << tmp.literals[i].is_parameter_set << '\n';
 	}
 	wcout << "===================\n";
 }

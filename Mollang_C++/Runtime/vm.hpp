@@ -4,18 +4,31 @@ using ll = long long;
 using ld = long double;
 using namespace std;
 
+class FUNCTION {
+public:
+	vector<ll> parameter;
+	ll st = -1, ed = -1;
+};
+
 class ENV {
 public:
 	map<ll, ll> variables;
 };
 
-ll calc(ENV& env, Literal_Parsed& x, ll idx, ll position) {
+class GLOBAL {
+public:
+	map<wstring, ll> function;
+	vector<FUNCTION> functions;
+};
+
+ll calc(ENV& env, Literal_Parsed& x, ll idx, ll ed, ll position) {
+	if (ed == -1) ed = x.content.size();
 	if (x.content[0] == MULTIPLY) ErrorCode(WRONG_MULTIPLY, position);
 	if (x.content.back() == MULTIPLY) ErrorCode(WRONG_MULTIPLY, position);
 
 	ll ans = 1, cur = 0;
 	ll element_type = MULTIPLY;
-	for (ll i = idx; i < x.content.size(); i++) {
+	for (ll i = idx; i < ed; i++) {
 		if (x.content[i] <= MULTIPLY) {
 			if (element_type == MULTIPLY) ans *= cur, cur = 0;
 			else {
@@ -95,7 +108,7 @@ void assign(ENV& env, Literal_Parsed& x, ll position, bool process_using_float) 
 				env.variables[x.content[0]] *= (ll)value;
 			}
 			else {
-				ll value = calc(env, x, 2, position);
+				ll value = calc(env, x, 2, -1, position);
 				env.variables[x.content[0]] *= value;
 			}
 		}
@@ -105,51 +118,95 @@ void assign(ENV& env, Literal_Parsed& x, ll position, bool process_using_float) 
 				env.variables[x.content[0]] += (ll)value;
 			}
 			else {
-				ll value = calc(env, x, 1, position);
+				ll value = calc(env, x, 1, -1, position);
 				env.variables[x.content[0]] += value;
 			}
 		}
 	}
 	else {
 		if (x.content[1] == MULTIPLY) ErrorCode(WRONG_MULTIPLY, position);
-		ll value = calc(env, x, 1, position);
+		ll value = calc(env, x, 1, -1, position);
 		env.variables[x.content[0]] = value;
 	}
 }
 
-ll run(ENV& env, Tokenized& x, Compiled& y) {
+ll run(GLOBAL& global, ENV& env, Tokenized& x, Compiled& y, ll st, ll ed) {
 	stack<pair<ll, ll>> jump_return;
-	for (ll i = 0; i < x.tokens.size(); i++) {
+	for (ll i = st; i < ed; i++) {
 		ll f = get<0>(x.tokens[i]), s = get<1>(x.tokens[i]), t = get<2>(x.tokens[i]);
 		if (f == LITERAL) {
 			if (y.no_calc[s]) continue;
 			if (!y.literal_owned[s]) assign(env, x.literals[s], x.tokens_position[i], y.type[s].second);
 		}
-		else if (f >= PAIR_KEYWORD) {
+		else if (f >= KPAIR) {
 			if (s == i) ErrorCode(MISSING_MID_PARAMETER, x.tokens_position[i]);
-			if (f == PAIR_KEYWORD + 1) { //은?행 털!자
-				if (calc(env, x.literals[get<1>(x.tokens[i - 1])], 0, x.tokens_position[i]) != 0)
+			if (f == KPAIR + 1) { //은?행 털!자
+				if (calc(env, x.literals[get<1>(x.tokens[i - 1])], 0, -1, x.tokens_position[i]) != 0)
 					i = s;
 			}
-			else if (f == PAIR_KEYWORD + 2) { //은?행 돌!자
+			else if (f == KPAIR + 2) { //은?행 돌!자
 				if (jump_return.empty() || jump_return.top().second != i)
 					jump_return.push({ s, i });
-				if (calc(env, x.literals[get<1>(x.tokens[i - 1])], 0, x.tokens_position[i]) == 0) {
+				if (calc(env, x.literals[get<1>(x.tokens[i - 1])], 0, -1, x.tokens_position[i]) == 0) {
 					i = s;
 					jump_return.pop();
 				}
+			}
+			else if (f == KPAIR + 3) { //은?행 짓!자
+				if (!x.literals[get<1>(x.tokens[i + 1])].is_parameter_set)
+					ErrorCode(WRONG_PARAMETER, x.tokens_position[i]);
+				if (!x.literals[get<1>(x.tokens[i - 1])].function_identifier)
+					ErrorCode(WRONG_PARAMETER, x.tokens_position[i]);
+				FUNCTION tmp; auto& parameter_list = x.literals[get<1>(x.tokens[i + 1])].content;
+				for (ll t = 0; t < parameter_list.size(); t++) {
+					if (parameter_list[t] < SEPERATOR)
+						ErrorCode(WRONG_EXPRESSION, x.tokens_position[i]);
+					if (parameter_list[t] > SEPERATOR)
+						tmp.parameter.push_back(parameter_list[t]);
+				}
+				tmp.ed = s;
+				tmp.st = i + 2;
+				global.function[x.literals[get<1>(x.tokens[i - 1])].text] = global.functions.size();
+				global.functions.push_back(tmp);
+				i = s;
+			}
+			else if (f == KPAIR + 4) { //은?행 가!자
+				if (!x.literals[get<1>(x.tokens[i + 1])].is_parameter_set)
+					ErrorCode(WRONG_PARAMETER, x.tokens_position[i]);
+				if (!x.literals[get<1>(x.tokens[i - 1])].function_identifier)
+					ErrorCode(WRONG_PARAMETER, x.tokens_position[i]);
+				ENV local;
+				auto& parameters = x.literals[get<1>(x.tokens[i + 1])];
+				if (global.function.count(x.literals[get<1>(x.tokens[i - 1])].text) == 0)
+					ErrorCode(UNDEFINED_FUNCTION, x.tokens_position[i]);
+				auto& tmp = global.functions[global.function[x.literals[get<1>(x.tokens[i - 1])].text]];
+				ll parst = 0, parcnt = 0;
+				for (ll t = 0; t < parameters.content.size(); t++) {
+					if (parameters.content[t] == SEPERATOR) {
+						if (parcnt == tmp.parameter.size())
+							ErrorCode(UNMATCHED_PARAMETER, x.tokens_position[i]);
+						local.variables[tmp.parameter[parcnt++]] = calc(env, parameters, parst, t, x.tokens_position[i]);
+						parst = t + 1;
+					}
+				}
+				if (parcnt == tmp.parameter.size())
+					ErrorCode(UNMATCHED_PARAMETER, x.tokens_position[i]);
+				local.variables[tmp.parameter[parcnt++]] = calc(env, parameters, parst, t, x.tokens_position[i]);
+				if (parcnt != tmp.parameter.size())
+					ErrorCode(UNMATCHED_PARAMETER, x.tokens_position[i]);
+				run(global, local, x, y, tmp.st, tmp.ed + 1); //리턴값처리 필요!!
 			}
 			else {
 				if (s > i + 1) ErrorCode(WRONG_PARAMETER, x.tokens_position[i]);
 				if (get<0>(x.tokens[i + 1]) != LITERAL)
 					ErrorCode(WRONG_PARAMETER, x.tokens_position[i]);
 
-				ll midparam = calc(env, x.literals[get<1>(x.tokens[i + 1])], 0, x.tokens_position[i]);
+				ll midparam = calc(env, x.literals[get<1>(x.tokens[i + 1])], 0, -1, x.tokens_position[i]);
 
-				if (f == PAIR_KEYWORD + 0) { //아루
+				if (f == KPAIR + 0) { //아루
 					wcout << (wchar_t)midparam;
 				}
-				else if (f == PAIR_KEYWORD + 3) { //가자!
+				else if (f == KPAIR + 5) { //가자!
 					i = x.gotopoint[midparam - 1] - 1;
 				}
 			}
@@ -166,16 +223,16 @@ ll run(ENV& env, Tokenized& x, Compiled& y) {
 			}
 			if (f == 1) { //루!
 				cout << fixed;
-				cout << setprecision(calc(env, x.literals[get<1>(x.tokens[i - 1])], 0, x.tokens_position[i]));
+				cout << setprecision(calc(env, x.literals[get<1>(x.tokens[i - 1])], 0, -1, x.tokens_position[i]));
 			}
 			if (f == 2) { //루
 				if (y.type[get<1>(x.tokens[i - 1])].second)
 					cout << float_calc(env, x.literals[get<1>(x.tokens[i - 1])], 0, x.tokens_position[i]);
-				else cout << calc(env, x.literals[get<1>(x.tokens[i - 1])], 0, x.tokens_position[i]);
+				else cout << calc(env, x.literals[get<1>(x.tokens[i - 1])], 0, -1, x.tokens_position[i]);
 			}
 			if (f == 3) { //0ㅅ0
 				if (i + 1 < x.tokens.size() && get<0>(x.tokens[i + 1]) == LITERAL)
-					return calc(env, x.literals[get<1>(x.tokens[i + 1])], 0, x.tokens_position[i]);
+					return calc(env, x.literals[get<1>(x.tokens[i + 1])], 0, -1, x.tokens_position[i]);
 				else return 0;
 			}
 		}

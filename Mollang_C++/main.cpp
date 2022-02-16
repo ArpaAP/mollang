@@ -32,5 +32,6 @@ int main(int argc, char* argv[]) {
 	if (show_parsed) show_compiled(token, src);
 
 	ENV default_env = ENV();
-	return run(default_env, token, src);
+	GLOBAL default_global = GLOBAL();
+	return run(default_global, default_env, token, src, 0, token.tokens.size());
 }

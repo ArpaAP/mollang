@@ -9,6 +9,8 @@ const short WRONG_PARAMETER = -4;
 const short MISSING_MID_PARAMETER = -5;
 const short DIVIDE_BY_ZERO = -6;
 const short MOD_WITH_FLOAT = -7;
+const short UNDEFINED_FUNCTION = -8;
+const short UNMATCHED_PARAMETER = -9;
 
 using ll = long long;
 using namespace std;

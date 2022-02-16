@@ -4,8 +4,9 @@ using ll = long long;
 using namespace std;
 
 const ll LITERAL = -1;
-const ll PAIR_KEYWORD = INT16_MAX;
+const ll KPAIR = INT16_MAX;
 
+const ll SEPERATOR = 0;
 const ll MINUS = -1;
 const ll PLUS = -2;
 const ll MULTIPLY = -3;
@@ -22,11 +23,17 @@ class Literal_Parsed {
 public:
 	wstring text;
 	vector<ll> content;
+	bool function_identifier = false;
+	bool is_parameter_set = false;
 	Literal_Parsed(wstring token, ll position) {
 		text = token;
 		for (ll i = 0; i < token.size(); i++) {
 			if (token[i] == L'?') content.push_back(PLUS);
 			else if (token[i] == L'!') content.push_back(MINUS);
+			else if (token[i] == L',') { 
+				is_parameter_set = true;
+				content.push_back(SEPERATOR);
+			}
 			else if (token[i] == L'.') {
 				if (content.size() == 0)
 					ErrorCode(WRONG_MULTIPLY, position);
@@ -49,6 +56,10 @@ public:
 			else ErrorCode(WRONG_EXPRESSION, position);
 		}
 	}
+	Literal_Parsed(wstring token) {
+		text = token;
+		function_identifier = true;
+	}
 };
 
 class Tokenized {
@@ -59,15 +70,19 @@ public:
 	vector<ll> gotopoint;
 };
 
-set<wchar_t> literal_char = { L'몰', L'모', L'오', L'올', L'?', L'!', L'.' };
+set<wchar_t> literal_char = { L'몰', L'모', L'오', L'올', L'?', L'!', L'.', L',' };
 vector<wstring> keywords = { L"루?", L"루!", L"루", L"0ㅅ0" };
-vector<pair<wstring, wstring>> pair_keywords = { {L"아", L"루"}, {L"은?행", L"털!자"}, {L"은?행", L"돌!자"}, {L"가", L"자!"} };
+vector<pair<wstring, wstring>> pair_keywords = { 
+	{L"아", L"루"}, {L"은?행", L"털!자"}, {L"은?행", L"돌!자"},
+	{L"은?행", L"짓!자"}, {L"은?행", L"가!자"}, {L"가", L"자!"} 
+};
 
-set<ll> front_parametered = { 0, 1, 2, PAIR_KEYWORD + 1, PAIR_KEYWORD + 2 };
-set<ll> back_parametered = { 3 };
+set<ll> front_parametered = { 0, 1, 2, KPAIR + 1, KPAIR + 2, KPAIR + 3, KPAIR + 4 };
+set<ll> back_parametered = { 3, KPAIR + 3, KPAIR + 4 };
+set<ll> back_function_parameter = { KPAIR + 3, KPAIR + 4 };
 set<ll> non_number_parameter = { 0 };
 set<ll> all_type_parameter = { 2 };
-set<ll> mid_number_param = { PAIR_KEYWORD, PAIR_KEYWORD + 3 };
+set<ll> mid_number_param = { KPAIR, KPAIR + 5 };
 set<ll> not_always_require_parameter = { 3 };
 
 ll literalToken(wstring& script, ll idx) {
@@ -91,7 +106,7 @@ Tokenized tokenize(wstring script) {
 			line++;
 			continue;
 		}
-		if (cur == ' ') continue;
+		if (cur == L' ') continue;
 		if (literal_char.count(cur)) {
 			ll len = literalToken(script, i);
 			ret.tokens.push_back({ LITERAL, ret.literals.size(), -1 });
@@ -130,7 +145,7 @@ Tokenized tokenize(wstring script) {
 		for (ll t = 0; t < pair_keywords.size(); t++) {
 			if (script.substr(i, pair_keywords[t].first.size()) == pair_keywords[t].first) {
 				foundToken = true;
-				closePair.top().second.insert({ pair_keywords[t].second, PAIR_KEYWORD + t, });
+				closePair.top().second.insert({ pair_keywords[t].second, KPAIR + t, });
 				plused = pair_keywords[t].first.size() - 1;
 			}
 		}
@@ -141,6 +156,17 @@ Tokenized tokenize(wstring script) {
 			ret.tokens_position.push_back(line);
 			continue;
 		}
+
+		if (i + 1 < script.size()) {
+			if (L'마' <= script[i] && script[i] <= L'밓' && L'라' <= script[i + 1] && script[i + 1] <= L'맇') {
+				foundToken = true;
+				ret.tokens.push_back({ LITERAL, ret.literals.size(), -1 });
+				ret.tokens_position.push_back(line);
+				ret.literals.push_back(Literal_Parsed(script.substr(i, 2)));
+				i++;
+			}
+		}
+		if (foundToken) continue;
 
 		ErrorCode(UNKNOWN_TOKEN, line);
 	}
