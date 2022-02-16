@@ -35,3 +35,24 @@
 
 가?자!
 ```
+
+### 설치하기
+```
+npm i mollang-core
+```
+
+### 사용하기
+
+```js
+// ES6+ 인 경우
+import mollang from 'mollang-core';
+import readline from 'readline-sync';
+
+// CommonJS
+const mollang = require('mollang-core').default;
+const readline = require('readline-sync');
+
+var result = mollang('몰? 몰루', {
+  inputFn: readline.question
+});
+```
