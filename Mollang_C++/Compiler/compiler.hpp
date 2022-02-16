@@ -59,7 +59,7 @@ Compiled compile(Tokenized data) {
 			}
 			else ErrorCode(MISSING_PARAMETER, data.tokens_position[i]);
 		}
-		if (cur >= PAIR_KEYWORD) {
+		if (mid_number_param.count(cur)) {
 			ll t = i + 1;
 			while (t <= get<1>(data.tokens[i])) {
 				if (get<0>(data.tokens[t]) == LITERAL)

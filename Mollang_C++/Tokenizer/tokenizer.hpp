@@ -60,13 +60,14 @@ public:
 };
 
 set<wchar_t> literal_char = { L'몰', L'모', L'오', L'올', L'?', L'!', L'.' };
-vector<wstring> keywords = { L"루?", L"루!", L"루", L"0ㅅ0"};
-vector<pair<wstring, wstring>> pair_keywords = { {L"아", L"루"}, {L"은?행", L"털!자"}, {L"가", L"자!"} };
+vector<wstring> keywords = { L"루?", L"루!", L"루", L"0ㅅ0" };
+vector<pair<wstring, wstring>> pair_keywords = { {L"아", L"루"}, {L"은?행", L"털!자"}, {L"은?행", L"돌!자"}, {L"가", L"자!"} };
 
-set<ll> front_parametered = { 0, 1, 2, PAIR_KEYWORD + 1 };
+set<ll> front_parametered = { 0, 1, 2, PAIR_KEYWORD + 1, PAIR_KEYWORD + 2 };
 set<ll> back_parametered = { 3 };
 set<ll> non_number_parameter = { 0 };
-set<ll> all_type_parameter = { 0 };
+set<ll> all_type_parameter = { 2 };
+set<ll> mid_number_param = { PAIR_KEYWORD, PAIR_KEYWORD + 3 };
 set<ll> not_always_require_parameter = { 3 };
 
 ll literalToken(wstring& script, ll idx) {
@@ -81,7 +82,7 @@ ll literalToken(wstring& script, ll idx) {
 Tokenized tokenize(wstring script) {
 	Tokenized ret;
 	ret.gotopoint.push_back(0);
-	stack<pair<ll, wstring>> closePair;
+	stack<pair<ll, set<pair<wstring, ll>>>> closePair;
 	ll line = 0;
 	for (ll i = 0; i < script.size(); i++) {
 		wchar_t cur = script[i];
@@ -99,15 +100,20 @@ Tokenized tokenize(wstring script) {
 			i += len - 1;
 			continue;
 		}
-		if (closePair.size() > 0) {
-			if (script.substr(i, closePair.top().second.size()) == closePair.top().second) {
-				get<1>(ret.tokens[closePair.top().first]) = ret.tokens.size() - 1;
-				i += closePair.top().second.size() - 1;
-				closePair.pop();
-				continue;
-			}
-		}
 		bool foundToken = false;
+		if (closePair.size() > 0) {
+			for (pair<wstring, ll> x : closePair.top().second) {
+				if (script.substr(i, x.first.size()) == x.first) {
+					foundToken = true;
+					get<1>(ret.tokens[closePair.top().first]) = ret.tokens.size() - 1;
+					get<0>(ret.tokens[closePair.top().first]) = x.second;
+					i += x.first.size() - 1;
+					closePair.pop();
+					break;
+				}
+			}
+			if (foundToken) continue;
+		}
 		for (ll t = 0; t < keywords.size(); t++) {
 			if (script.substr(i, keywords[t].size()) == keywords[t]) {
 				foundToken = true;
@@ -118,17 +124,23 @@ Tokenized tokenize(wstring script) {
 			}
 		}
 		if (foundToken) continue;
+		closePair.push({});
+		closePair.top().first = ret.tokens.size();
+		ll plused = 0;
 		for (ll t = 0; t < pair_keywords.size(); t++) {
 			if (script.substr(i, pair_keywords[t].first.size()) == pair_keywords[t].first) {
 				foundToken = true;
-				closePair.push({ ret.tokens.size(), pair_keywords[t].second });
-				ret.tokens.push_back({ PAIR_KEYWORD + t, -1, -1 });
-				ret.tokens_position.push_back(line);
-				i += pair_keywords[t].first.size() - 1;
-				break;
+				closePair.top().second.insert({ pair_keywords[t].second, PAIR_KEYWORD + t, });
+				plused = pair_keywords[t].first.size() - 1;
 			}
 		}
-		if (foundToken) continue;
+		if (closePair.top().second.empty()) closePair.pop();
+		if (foundToken) {
+			i += plused;
+			ret.tokens.push_back({ -1, -1, -1 });
+			ret.tokens_position.push_back(line);
+			continue;
+		}
 
 		ErrorCode(UNKNOWN_TOKEN, line);
 	}

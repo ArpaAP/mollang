@@ -118,6 +118,7 @@ void assign(ENV& env, Literal_Parsed& x, ll position, bool process_using_float) 
 }
 
 ll run(ENV& env, Tokenized& x, Compiled& y) {
+	stack<pair<ll, ll>> jump_return;
 	for (ll i = 0; i < x.tokens.size(); i++) {
 		ll f = get<0>(x.tokens[i]), s = get<1>(x.tokens[i]), t = get<2>(x.tokens[i]);
 		if (f == LITERAL) {
@@ -130,16 +131,25 @@ ll run(ENV& env, Tokenized& x, Compiled& y) {
 				if (calc(env, x.literals[get<1>(x.tokens[i - 1])], 0, x.tokens_position[i]) != 0)
 					i = s;
 			}
+			else if (f == PAIR_KEYWORD + 2) { //은?행 돌!자
+				if (jump_return.empty() || jump_return.top().second != i)
+					jump_return.push({ s, i });
+				if (calc(env, x.literals[get<1>(x.tokens[i - 1])], 0, x.tokens_position[i]) == 0) {
+					i = s;
+					jump_return.pop();
+				}
+			}
 			else {
 				if (s > i + 1) ErrorCode(WRONG_PARAMETER, x.tokens_position[i]);
-				if (get<0>(x.tokens[i + 1]) != LITERAL) ErrorCode(WRONG_PARAMETER, x.tokens_position[i]);
+				if (get<0>(x.tokens[i + 1]) != LITERAL)
+					ErrorCode(WRONG_PARAMETER, x.tokens_position[i]);
 
 				ll midparam = calc(env, x.literals[get<1>(x.tokens[i + 1])], 0, x.tokens_position[i]);
 
 				if (f == PAIR_KEYWORD + 0) { //아루
 					wcout << (wchar_t)midparam;
 				}
-				else if (f == PAIR_KEYWORD + 2) { //가자!
+				else if (f == PAIR_KEYWORD + 3) { //가자!
 					i = x.gotopoint[midparam - 1] - 1;
 				}
 			}
@@ -169,6 +179,8 @@ ll run(ENV& env, Tokenized& x, Compiled& y) {
 				else return 0;
 			}
 		}
+		if (!jump_return.empty() && jump_return.top().first == i)
+			i = jump_return.top().second - 1;
 	}
 
 	return 0;
