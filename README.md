@@ -375,6 +375,26 @@ npm i -g mollang
 mollang <molu파일 경로>
 ```
 
+### 모듈 사용
+콘솔(CLI)에서 사용하지 않고 모듈로 사용하기를 원하는 경우, `mollang-core` 패키지를 설치합니다.
+```
+npm i mollang-core
+```
+
+```js
+// ES6+ 인 경우
+import mollang from 'mollang-core';
+import readline from 'readline-sync';
+
+// CommonJS
+const mollang = require('mollang-core').default;
+const readline = require('readline-sync');
+
+var result = mollang('몰? 몰루', {
+  inputFn: readline.question
+});
+```
+
 ### 미설치 사용
 ```
 npx mollang <molu 파일 경로>
