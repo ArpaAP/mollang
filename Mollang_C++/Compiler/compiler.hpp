@@ -7,46 +7,63 @@ class Compiled {
 public:
 	vector<bool> literal_owned;
 	vector<bool> no_calc;
+	vector<pair<ll, bool>> type; //result type, process using float
 };
 
-Compiled compile(Tokenized x) {
-	Compiled ret = { vector<bool>(x.literals.size()), vector<bool>(x.literals.size()) };
-	for (ll i = 0; i < x.tokens.size(); i++) {
-		ll cur = get<0>(x.tokens[i]);
+Compiled compile(Tokenized data) {
+	Compiled ret = {
+		vector<bool>(data.literals.size()),
+		vector<bool>(data.literals.size()),
+		vector<pair<ll, bool>>(data.literals.size())
+	};
+	for (ll i = 0; i < data.literals.size(); i++) {
+		for (auto j : data.literals[i].content) {
+			if (j == DIVIDE) {
+				ret.type[i].second = true;
+				break;
+			}
+		}
+	}
+	for (ll i = 0; i < data.tokens.size(); i++) {
+		ll cur = get<0>(data.tokens[i]);
 		if (cur == -1) continue;
 
 		if (back_parametered.count(cur)) {
-			if (i == x.tokens.size() - 1) {
+			if (i == data.tokens.size() - 1) {
 				if (!not_always_require_parameter.count(cur))
-					ErrorCode(MISSING_PARAMETER, x.tokens_position[i]);
+					ErrorCode(MISSING_PARAMETER, data.tokens_position[i]);
 				continue;
 			}
-			if (get<0>(x.tokens[i + 1]) == LITERAL) {
-				if (ret.literal_owned[get<1>(x.tokens[i + 1])])
-					ErrorCode(MISSING_PARAMETER, x.tokens_position[i]);
-				ret.literal_owned[get<1>(x.tokens[i + 1])] = true;
+			if (get<0>(data.tokens[i + 1]) == LITERAL) {
+				if (ret.literal_owned[get<1>(data.tokens[i + 1])])
+					ErrorCode(MISSING_PARAMETER, data.tokens_position[i]);
+				ret.literal_owned[get<1>(data.tokens[i + 1])] = true;
 				if (non_number_parameter.count(cur))
-					ret.no_calc[get<1>(x.tokens[i + 1])] = true;
+					ret.no_calc[get<1>(data.tokens[i + 1])] = true;
+				if (all_type_parameter.count(cur))
+					ret.type[get<1>(data.tokens[i + 1])].first = ALLTYPE;
 			}
 			else if (!not_always_require_parameter.count(cur))
-				ErrorCode(MISSING_PARAMETER, x.tokens_position[i]);
+				ErrorCode(MISSING_PARAMETER, data.tokens_position[i]);
 		}
 		if (front_parametered.count(cur)) {
-			if (i == 0) ErrorCode(MISSING_PARAMETER, x.tokens_position[i]);
-			if (get<0>(x.tokens[i - 1]) == LITERAL) {
-				if (ret.literal_owned[get<1>(x.tokens[i - 1])])
-					ErrorCode(MISSING_PARAMETER, x.tokens_position[i]);
-				ret.literal_owned[get<1>(x.tokens[i - 1])] = true;
+			if (i == 0) ErrorCode(MISSING_PARAMETER, data.tokens_position[i]);
+			if (get<0>(data.tokens[i - 1]) == LITERAL) {
+				if (ret.literal_owned[get<1>(data.tokens[i - 1])])
+					ErrorCode(MISSING_PARAMETER, data.tokens_position[i]);
+				ret.literal_owned[get<1>(data.tokens[i - 1])] = true;
 				if(non_number_parameter.count(cur))
-					ret.no_calc[get<1>(x.tokens[i - 1])] = true;
+					ret.no_calc[get<1>(data.tokens[i - 1])] = true;
+				if (all_type_parameter.count(cur))
+					ret.type[get<1>(data.tokens[i - 1])].first = ALLTYPE;
 			}
-			else ErrorCode(MISSING_PARAMETER, x.tokens_position[i]);
+			else ErrorCode(MISSING_PARAMETER, data.tokens_position[i]);
 		}
 		if (cur >= PAIR_KEYWORD) {
 			ll t = i + 1;
-			while (t <= get<1>(x.tokens[i])) {
-				if (get<0>(x.tokens[t]) == LITERAL)
-					ret.literal_owned[get<1>(x.tokens[t])] = true;
+			while (t <= get<1>(data.tokens[i])) {
+				if (get<0>(data.tokens[t]) == LITERAL)
+					ret.literal_owned[get<1>(data.tokens[t])] = true;
 				t++;
 			}
 			i = t - 1;

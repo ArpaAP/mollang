@@ -7,6 +7,8 @@ const short WRONG_EXPRESSION = -2;
 const short WRONG_MULTIPLY = -3;
 const short WRONG_PARAMETER = -4;
 const short MISSING_MID_PARAMETER = -5;
+const short DIVIDE_BY_ZERO = -6;
+const short MOD_WITH_FLOAT = -7;
 
 using ll = long long;
 using namespace std;

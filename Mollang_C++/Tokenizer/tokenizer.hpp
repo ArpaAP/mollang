@@ -6,9 +6,17 @@ using namespace std;
 const ll LITERAL = -1;
 const ll PAIR_KEYWORD = INT16_MAX;
 
-const ll PLUS = -1;
-const ll MINUS = -2;
-const ll MULTIPLY = 0;
+const ll MINUS = -1;
+const ll PLUS = -2;
+const ll MULTIPLY = -3;
+const ll DIVIDE = -4;
+const ll DIVIDE_INT = -5;
+const ll DIVIDE_MOD = -6;
+
+const ll INTEGER = 0;
+const ll FLOAT = 1;
+const ll STRING = 2;
+const ll ALLTYPE = 3;
 
 class Literal_Parsed {
 public:
@@ -19,7 +27,17 @@ public:
 		for (ll i = 0; i < token.size(); i++) {
 			if (token[i] == L'?') content.push_back(PLUS);
 			else if (token[i] == L'!') content.push_back(MINUS);
-			else if (token[i] == L'.') content.push_back(MULTIPLY);
+			else if (token[i] == L'.') {
+				if (content.size() == 0)
+					ErrorCode(WRONG_MULTIPLY, position);
+				if (content.back() == DIVIDE_INT)
+					content.back() = DIVIDE_MOD;
+				else if (content.back() == DIVIDE)
+					content.back() = DIVIDE_INT;
+				else if (content.back() == MULTIPLY)
+					content.back() = DIVIDE;
+				else content.push_back(MULTIPLY);
+			}
 			else if (token[i] == L'몰') content.push_back(1);
 			else if (token[i] == L'모') {
 				ll len = 2, t = i + 1;
@@ -42,13 +60,14 @@ public:
 };
 
 set<wchar_t> literal_char = { L'몰', L'모', L'오', L'올', L'?', L'!', L'.' };
-vector<wstring> keywords = { L"루?", L"루", L"0ㅅ0" };
+vector<wstring> keywords = { L"루?", L"루!", L"루", L"0ㅅ0"};
 vector<pair<wstring, wstring>> pair_keywords = { {L"아", L"루"}, {L"은?행", L"털!자"}, {L"가", L"자!"} };
 
-set<ll> front_parametered = { 0, 1, PAIR_KEYWORD + 1 };
-set<ll> back_parametered = { 2 };
+set<ll> front_parametered = { 0, 1, 2, PAIR_KEYWORD + 1 };
+set<ll> back_parametered = { 3 };
 set<ll> non_number_parameter = { 0 };
-set<ll> not_always_require_parameter = { 2 };
+set<ll> all_type_parameter = { 0 };
+set<ll> not_always_require_parameter = { 3 };
 
 ll literalToken(wstring& script, ll idx) {
 	ll length = 0;

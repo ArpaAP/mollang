@@ -1,12 +1,12 @@
 #include <bits/stdc++.h>
 #include "../Compiler/compiler.hpp";
 using ll = long long;
+using ld = long double;
 using namespace std;
 
 class ENV {
 public:
 	map<ll, ll> variables;
-	stack<ll> runtimeStack;
 };
 
 ll calc(ENV& env, Literal_Parsed& x, ll idx, ll position) {
@@ -14,9 +14,17 @@ ll calc(ENV& env, Literal_Parsed& x, ll idx, ll position) {
 	if (x.content.back() == MULTIPLY) ErrorCode(WRONG_MULTIPLY, position);
 
 	ll ans = 1, cur = 0;
+	ll element_type = MULTIPLY;
 	for (ll i = idx; i < x.content.size(); i++) {
-		if (x.content[i] == MULTIPLY)
-			ans *= cur, cur = 0;
+		if (x.content[i] <= MULTIPLY) {
+			if (element_type == MULTIPLY) ans *= cur, cur = 0;
+			else {
+				if (cur == 0) ErrorCode(DIVIDE_BY_ZERO, position);
+				if (element_type == DIVIDE_INT) ans /= cur, cur = 0;
+				if (element_type == DIVIDE_MOD) ans %= cur, cur = 0;
+			}
+			element_type = x.content[i];
+		}
 		else if (x.content[i] == PLUS) cur++;
 		else if (x.content[i] == MINUS) cur--;
 		else {
@@ -25,12 +33,53 @@ ll calc(ENV& env, Literal_Parsed& x, ll idx, ll position) {
 			else ErrorCode(UNDEFINED_VARIABLE, position);
 		}
 	}
-	ans *= cur;
+	if (element_type == MULTIPLY) ans *= cur, cur = 0;
+	else {
+		if (cur == 0) ErrorCode(DIVIDE_BY_ZERO, position);
+		if (element_type == DIVIDE_INT) ans /= cur, cur = 0;
+		if (element_type == DIVIDE_MOD) ans %= cur, cur = 0;
+	}
 
 	return ans;
 }
 
-void assign(ENV& env, Literal_Parsed& x, ll position) {
+ld float_calc(ENV& env, Literal_Parsed& x, ll idx, ll position) {
+	if (x.content[0] == MULTIPLY) ErrorCode(WRONG_MULTIPLY, position);
+	if (x.content.back() == MULTIPLY) ErrorCode(WRONG_MULTIPLY, position);
+
+	ld ans = 1, cur = 0;
+	ll element_type = MULTIPLY;
+	for (ll i = idx; i < x.content.size(); i++) {
+		if (x.content[i] <= MULTIPLY) {
+			if (element_type == MULTIPLY) ans *= cur, cur = 0;
+			else {
+				if (cur == 0) ErrorCode(DIVIDE_BY_ZERO, position);
+				if (element_type == DIVIDE_MOD) ErrorCode(MOD_WITH_FLOAT, position);
+				if (element_type == DIVIDE) ans /= cur, cur = 0;
+				if (element_type == DIVIDE_INT) ans = (ll)(ans / cur), cur = 0;
+			}
+			element_type = x.content[i];
+		}
+		else if (x.content[i] == PLUS) cur += 1;
+		else if (x.content[i] == MINUS) cur -= 1;
+		else {
+			if (env.variables.count(x.content[i]))
+				cur += env.variables[x.content[i]];
+			else ErrorCode(UNDEFINED_VARIABLE, position);
+		}
+	}
+	if (element_type == MULTIPLY) ans *= cur, cur = 0;
+	else {
+		if (cur == 0) ErrorCode(DIVIDE_BY_ZERO, position);
+		if (element_type == DIVIDE_MOD) ErrorCode(MOD_WITH_FLOAT, position);
+		if (element_type == DIVIDE) ans /= cur, cur = 0;
+		if (element_type == DIVIDE_INT) ans = (ll)(ans / cur), cur = 0;
+	}
+
+	return ans;
+}
+
+void assign(ENV& env, Literal_Parsed& x, ll position, bool process_using_float) {
 	if (x.content[0] <= 0) ErrorCode(WRONG_EXPRESSION, position);
 	if (x.content.back() == MULTIPLY) ErrorCode(WRONG_EXPRESSION, position);
 
@@ -41,12 +90,24 @@ void assign(ENV& env, Literal_Parsed& x, ll position) {
 
 	if (env.variables.count(x.content[0])) {
 		if (x.content[1] == MULTIPLY) {
-			ll value = calc(env, x, 2, position);
-			env.variables[x.content[0]] *= value;
+			if (process_using_float) {
+				ld value = float_calc(env, x, 2, position);
+				env.variables[x.content[0]] *= (ll)value;
+			}
+			else {
+				ll value = calc(env, x, 2, position);
+				env.variables[x.content[0]] *= value;
+			}
 		}
 		else {
-			ll value = calc(env, x, 1, position);
-			env.variables[x.content[0]] += value;
+			if (process_using_float) {
+				ld value = float_calc(env, x, 1, position);
+				env.variables[x.content[0]] += (ll)value;
+			}
+			else {
+				ll value = calc(env, x, 1, position);
+				env.variables[x.content[0]] += value;
+			}
 		}
 	}
 	else {
@@ -61,16 +122,13 @@ ll run(ENV& env, Tokenized& x, Compiled& y) {
 		ll f = get<0>(x.tokens[i]), s = get<1>(x.tokens[i]), t = get<2>(x.tokens[i]);
 		if (f == LITERAL) {
 			if (y.no_calc[s]) continue;
-			if (y.literal_owned[s])
-				env.runtimeStack.push(calc(env, x.literals[s], 0, x.tokens_position[i]));
-			else assign(env, x.literals[s], x.tokens_position[i]);
+			if (!y.literal_owned[s]) assign(env, x.literals[s], x.tokens_position[i], y.type[s].second);
 		}
 		else if (f >= PAIR_KEYWORD) {
 			if (s == i) ErrorCode(MISSING_MID_PARAMETER, x.tokens_position[i]);
 			if (f == PAIR_KEYWORD + 1) { //篮?青 判!磊
-				if (env.runtimeStack.top() != 0)
+				if (calc(env, x.literals[get<1>(x.tokens[i - 1])], 0, x.tokens_position[i]) != 0)
 					i = s;
-				env.runtimeStack.pop();
 			}
 			else {
 				if (s > i + 1) ErrorCode(WRONG_PARAMETER, x.tokens_position[i]);
@@ -96,11 +154,16 @@ ll run(ENV& env, Tokenized& x, Compiled& y) {
 					ErrorCode(WRONG_PARAMETER, x.tokens_position[i]);
 				cin >> env.variables[x.literals[get<1>(x.tokens[i - 1])].content[0]];
 			}
-			if (f == 1) { //风
-				cout << env.runtimeStack.top();
-				env.runtimeStack.pop();
+			if (f == 1) { //风!
+				cout << fixed;
+				cout << setprecision(calc(env, x.literals[get<1>(x.tokens[i - 1])], 0, x.tokens_position[i]));
 			}
-			if (f == 2) { //0さ0
+			if (f == 2) { //风
+				if (y.type[get<1>(x.tokens[i - 1])].second)
+					cout << float_calc(env, x.literals[get<1>(x.tokens[i - 1])], 0, x.tokens_position[i]);
+				else cout << calc(env, x.literals[get<1>(x.tokens[i - 1])], 0, x.tokens_position[i]);
+			}
+			if (f == 3) { //0さ0
 				if (i + 1 < x.tokens.size() && get<0>(x.tokens[i + 1]) == LITERAL)
 					return calc(env, x.literals[get<1>(x.tokens[i + 1])], 0, x.tokens_position[i]);
 				else return 0;
