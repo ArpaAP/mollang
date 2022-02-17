@@ -8,6 +8,12 @@
   <br>
 </h2>
 
+[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FArpaAP%2Fmollang&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=true)](https://hits.seeyoufarm.com)
+![GitHub Repo stars](https://img.shields.io/github/stars/ArpaAP/mollang?style=flat-square)
+![npm](https://img.shields.io/npm/v/mollang-core?color=%23ff6f3f&label=npm%20%28mollang-core%29&style=flat-square)
+![npm](https://img.shields.io/npm/v/mollang?color=%23ff6f3f&label=npm%20%28mollang%29&style=flat-square)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/ArpaAP/mollang?style=flat-square)
+
 <br>
 <span align="center">
   
