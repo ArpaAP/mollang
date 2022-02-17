@@ -1,7 +1,7 @@
 #include <bits/stdc++.h>
 #include "../Compiler/compiler.hpp";
 using ll = long long;
-using ld = long double;
+using ld = long double; 
 using namespace std;
 
 class FUNCTION {
@@ -17,7 +17,7 @@ public:
 
 class GLOBAL {
 public:
-	map<wstring, ll> function;
+	map<u16string, ll> function;
 	vector<FUNCTION> functions;
 };
 
@@ -203,8 +203,8 @@ ll run(GLOBAL& global, ENV& env, Tokenized& x, Compiled& y, ll st, ll ed) {
 
 				ll midparam = calc(env, x.literals[get<1>(x.tokens[i + 1])], 0, -1, x.tokens_position[i]);
 
-				if (f == KPAIR + 0) { //아루
-					wcout << (wchar_t)midparam;
+				if (f == KPAIR + 0) { //아루  
+					cout << converter.to_bytes(midparam) << endl;
 				}
 				else if (f == KPAIR + 5) { //가자!
 					i = x.gotopoint[midparam - 1] - 1;

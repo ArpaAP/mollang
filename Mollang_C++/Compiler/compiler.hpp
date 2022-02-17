@@ -10,6 +10,8 @@ public:
 	vector<pair<ll, bool>> type; //result type, process using float
 };
 
+wstring_convert<codecvt_utf8<char16_t>, char16_t> converter;
+
 Compiled compile(Tokenized& data) {
 	Compiled ret = {
 		vector<bool>(data.literals.size()),
@@ -76,15 +78,15 @@ Compiled compile(Tokenized& data) {
 }
 
 void show_compiled(Tokenized& tmp, Compiled& tmp2) {
-	wcout << "===================\n";
-	wcout << "TOKENS\n";
+	cout << "===================\n";
+	cout << "TOKENS\n";
 	for (ll i = 0; i < tmp.tokens.size(); i++) {
-		wcout << i << ": " << get<0>(tmp.tokens[i]) << ' '
+		cout << i << ": " << get<0>(tmp.tokens[i]) << ' '
 			<< get<1>(tmp.tokens[i]) << ' ' << get<2>(tmp.tokens[i]) << '\n';
 	}
-	wcout << "LITERALS\n";
+	cout << "LITERALS\n";
 	for (ll i = 0; i < tmp.literals.size(); i++) {
-		wcout << i << ": " << tmp.literals[i].text << ' ' << tmp2.literal_owned[i] << ' ' << tmp.literals[i].is_parameter_set << '\n';
+		cout << i << ": " << converter.to_bytes(tmp.literals[i].text) << ' ' << tmp2.literal_owned[i] << ' ' << tmp.literals[i].is_parameter_set << '\n';
 	}
-	wcout << "===================\n";
+	cout << "===================\n";
 }

@@ -21,20 +21,20 @@ const ll ALLTYPE = 3;
 
 class Literal_Parsed {
 public:
-	wstring text;
+	u16string text;
 	vector<ll> content;
 	bool function_identifier = false;
 	bool is_parameter_set = false;
-	Literal_Parsed(wstring token, ll position) {
+	Literal_Parsed(u16string token, ll position) {
 		text = token;
 		for (ll i = 0; i < token.size(); i++) {
-			if (token[i] == L'?') content.push_back(PLUS);
-			else if (token[i] == L'!') content.push_back(MINUS);
-			else if (token[i] == L',') { 
+			if (token[i] == u'?') content.push_back(PLUS);
+			else if (token[i] == u'!') content.push_back(MINUS);
+			else if (token[i] == u',') { 
 				is_parameter_set = true;
 				content.push_back(SEPERATOR);
 			}
-			else if (token[i] == L'.') {
+			else if (token[i] == u'.') {
 				if (content.size() == 0)
 					ErrorCode(WRONG_MULTIPLY, position);
 				if (content.back() == DIVIDE_INT)
@@ -45,18 +45,18 @@ public:
 					content.back() = DIVIDE;
 				else content.push_back(MULTIPLY);
 			}
-			else if (token[i] == L'몰') content.push_back(1);
-			else if (token[i] == L'모') {
+			else if (token[i] == u'몰') content.push_back(1);
+			else if (token[i] == u'모') {
 				ll len = 2, t = i + 1;
-				while (token[t] == L'오') len++, t++;
-				if (token[t] != L'올') ErrorCode(WRONG_EXPRESSION, position);
+				while (token[t] == u'오') len++, t++;
+				if (token[t] != u'올') ErrorCode(WRONG_EXPRESSION, position);
 				content.push_back(len);
 				i = t;
 			}
 			else ErrorCode(WRONG_EXPRESSION, position);
 		}
 	}
-	Literal_Parsed(wstring token) {
+	Literal_Parsed(u16string token) {
 		text = token;
 		function_identifier = true;
 	}
@@ -70,11 +70,11 @@ public:
 	vector<ll> gotopoint;
 };
 
-set<wchar_t> literal_char = { L'몰', L'모', L'오', L'올', L'?', L'!', L'.', L',' };
-vector<wstring> keywords = { L"루?", L"루!", L"루", L"0ㅅ0" };
-vector<pair<wstring, wstring>> pair_keywords = { 
-	{L"아", L"루"}, {L"은?행", L"털!자"}, {L"은?행", L"돌!자"},
-	{L"은?행", L"짓!자"}, {L"은?행", L"가!자"}, {L"가", L"자!"} 
+set<wchar_t> literal_char = { u'몰', u'모', u'오', u'올', u'?', u'!', u'.', u',' };
+vector<u16string> keywords = { u"루?", u"루!", u"루", u"0ㅅ0" };
+vector<pair<u16string, u16string>> pair_keywords = { 
+	{u"아", u"루"}, {u"은?행", u"털!자"}, {u"은?행", u"돌!자"},
+	{u"은?행", u"짓!자"}, {u"은?행", u"가!자"}, {u"가", u"자!"} 
 };
 
 set<ll> front_parametered = { 0, 1, 2, KPAIR + 1, KPAIR + 2, KPAIR + 3, KPAIR + 4 };
@@ -85,7 +85,7 @@ set<ll> all_type_parameter = { 2 };
 set<ll> mid_number_param = { KPAIR, KPAIR + 5 };
 set<ll> not_always_require_parameter = { 3 };
 
-ll literalToken(wstring& script, ll idx) {
+ll literalToken(u16string& script, ll idx) {
 	ll length = 0;
 	for (ll i = idx; i < script.size(); i++) {
 		if (literal_char.count(script[i])) length++;
@@ -94,19 +94,19 @@ ll literalToken(wstring& script, ll idx) {
 	return length;
 }
 
-Tokenized tokenize(wstring script) {
+Tokenized tokenize(u16string script) {
 	Tokenized ret;
 	ret.gotopoint.push_back(0);
-	stack<pair<ll, set<pair<wstring, ll>>>> closePair;
+	stack<pair<ll, set<pair<u16string, ll>>>> closePair;
 	ll line = 0;
 	for (ll i = 0; i < script.size(); i++) {
 		wchar_t cur = script[i];
-		if (cur == L'\n') {
+		if (cur == u'\n') {
 			ret.gotopoint.push_back(ret.tokens.size());
 			line++;
 			continue;
 		}
-		if (cur == L' ') continue;
+		if (cur == u' ') continue;
 		if (literal_char.count(cur)) {
 			ll len = literalToken(script, i);
 			ret.tokens.push_back({ LITERAL, ret.literals.size(), -1 });
@@ -117,7 +117,7 @@ Tokenized tokenize(wstring script) {
 		}
 		bool foundToken = false;
 		if (closePair.size() > 0) {
-			for (pair<wstring, ll> x : closePair.top().second) {
+			for (pair<u16string, ll> x : closePair.top().second) {
 				if (script.substr(i, x.first.size()) == x.first) {
 					foundToken = true;
 					get<1>(ret.tokens[closePair.top().first]) = ret.tokens.size() - 1;
@@ -158,7 +158,7 @@ Tokenized tokenize(wstring script) {
 		}
 
 		if (i + 1 < script.size()) {
-			if (L'마' <= script[i] && script[i] <= L'밓' && L'라' <= script[i + 1] && script[i + 1] <= L'맇') {
+			if (u'마' <= script[i] && script[i] <= u'밓' && u'라' <= script[i + 1] && script[i + 1] <= u'맇') {
 				foundToken = true;
 				ret.tokens.push_back({ LITERAL, ret.literals.size(), -1 });
 				ret.tokens_position.push_back(line);

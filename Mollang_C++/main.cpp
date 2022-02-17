@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 #include <codecvt>
 #include "Runtime/vm.hpp"
+typedef std::basic_ifstream<char16_t> u16ifstream;
 using namespace std;
 
 int main(int argc, char* argv[]) {
@@ -17,10 +18,10 @@ int main(int argc, char* argv[]) {
 	if (argc == 1) file = "main.molu";
 	else file = argv[1];
 
-	wifstream in(file);
+	u16ifstream in(file);
 	in.imbue(locale(locale(), new codecvt_utf8_utf16<wchar_t, 0x10ffff, codecvt_mode(consume_header | generate_header)>));
 
-	wstring script, line;
+	u16string script, line;
 	while (getline(in, line)) {
 		script.append(line);
 		script += '\n';
