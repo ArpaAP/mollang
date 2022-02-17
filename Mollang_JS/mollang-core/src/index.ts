@@ -21,10 +21,7 @@ export default function main(
     const {
         maxRecursion = 100000,
         outputFn = process.stdout.write.bind(process.stdout),
-        errorFn = (code: number, position: number) =>
-            process.stderr.write(
-                `* ${position}번째 코드에서 오류 코드 ${code} (이)가 발생했습니다.\n`
-            ),
+        errorFn = undefined,
         inputFn = undefined,
     } = options;
 
@@ -41,11 +38,13 @@ export default function main(
         errorFn && errorFn(errorCode, position);
         errorCodes.push(errorCode);
         errorPositions.push(position);
+        throw new Error(`* ${position}번째 코드에서 오류 코드 ${errorCode} (이)가 발생했습니다.\n`);
     });
     const compiled = compile(data, (errorCode, position) => {
         errorFn && errorFn(errorCode, position);
         errorCodes.push(errorCode);
         errorPositions.push(position);
+        throw new Error(`* ${position}번째 코드에서 오류 코드 ${errorCode} (이)가 발생했습니다.\n`);
     });
 
     const defaultEnv = new ENV();
@@ -63,6 +62,9 @@ export default function main(
             errorFn && errorFn(errorCode, position);
             errorCodes.push(errorCode);
             errorPositions.push(position);
+            throw new Error(
+                `* ${position}번째 코드에서 오류 코드 ${errorCode} (이)가 발생했습니다.\n`
+            );
         },
         inputFn
     );
@@ -86,6 +88,7 @@ export function parse(code: string): [number[], number[], Tokenized] {
     const data = tokenize(code, (errorCode, position) => {
         errorCodes.push(errorCode);
         errorPositions.push(position);
+        throw new Error(`* ${position}번째 코드에서 오류 코드 ${errorCode} (이)가 발생했습니다.\n`);
     });
 
     return [errorCodes, errorPositions, data];
