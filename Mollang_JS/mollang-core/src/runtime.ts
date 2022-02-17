@@ -78,7 +78,7 @@ export default function run(
     maxRecursion: number,
     outputFn: (msg: string) => void,
     errorFn: (code: number, position: number) => void,
-    inputFn: () => string
+    inputFn: (() => string) | undefined
 ) {
     error = errorFn;
     let recursions = [];
@@ -131,7 +131,12 @@ export default function run(
             }
         } else {
             if (token[0] === 0) {
-                let tmp = Number(inputFn());
+                let tmp = 0;
+                if (inputFn === undefined) {
+                    error(Errors.INPUT_FUNC_NOT_FOUND, data.tokens_position[i]);
+                } else {
+                    tmp = Number(inputFn());
+                }
                 if (i === 0) {
                     error(Errors.MISSING_PARAMETER, data.tokens_position[i]);
                 }

@@ -8,4 +8,5 @@ export class Errors {
     static WRONG_PARAMETER = -4;
     static MISSING_MID_PARAMETER = -5;
     static MAX_RECURSION = -6;
+    static INPUT_FUNC_NOT_FOUND = -7;
 }
