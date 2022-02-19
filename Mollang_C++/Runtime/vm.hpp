@@ -176,25 +176,30 @@ ll run(GLOBAL& global, ENV& env, Tokenized& x, Compiled& y, ll st, ll ed) {
 				if (!x.literals[get<1>(x.tokens[i - 1])].function_identifier)
 					ErrorCode(WRONG_PARAMETER, x.tokens_position[i]);
 				ENV local;
-				auto& parameters = x.literals[get<1>(x.tokens[i + 1])];
+				auto parameters = x.literals[get<1>(x.tokens[i + 1])];
 				if (global.function.count(x.literals[get<1>(x.tokens[i - 1])].text) == 0)
 					ErrorCode(UNDEFINED_FUNCTION, x.tokens_position[i]);
 				auto& tmp = global.functions[global.function[x.literals[get<1>(x.tokens[i - 1])].text]];
-				ll parst = 0, parcnt = 0;
+				ll parst = 0, parcnt = 0, returnout = -1;
+				parameters.content.push_back(SEPERATOR);
 				for (ll t = 0; t < parameters.content.size(); t++) {
 					if (parameters.content[t] == SEPERATOR) {
-						if (parcnt == tmp.parameter.size())
-							ErrorCode(UNMATCHED_PARAMETER, x.tokens_position[i]);
-						local.variables[tmp.parameter[parcnt++]] = calc(env, parameters, parst, t, x.tokens_position[i]);
+						if (parcnt < tmp.parameter.size())
+							local.variables[tmp.parameter[parcnt++]] = calc(env, parameters, parst, t, x.tokens_position[i]);
+						else {
+							returnout = parameters.content[t - 1]; //오류검사
+							break;
+						}
 						parst = t + 1;
 					}
 				}
-				if (parcnt == tmp.parameter.size())
-					ErrorCode(UNMATCHED_PARAMETER, x.tokens_position[i]);
-				local.variables[tmp.parameter[parcnt++]] = calc(env, parameters, parst, t, x.tokens_position[i]);
-				if (parcnt != tmp.parameter.size())
-					ErrorCode(UNMATCHED_PARAMETER, x.tokens_position[i]);
-				run(global, local, x, y, tmp.st, tmp.ed + 1); //리턴값처리 필요!!
+				if (parcnt == tmp.parameter.size()) {
+					ll returnv = run(global, local, x, y, tmp.st, tmp.ed + 1);
+					if (returnout != -1) {
+						env.variables[returnout] = returnv;
+					}
+				}
+				else ErrorCode(UNMATCHED_PARAMETER, x.tokens_position[i]);
 			}
 			else {
 				if (s > i + 1) ErrorCode(WRONG_PARAMETER, x.tokens_position[i]);

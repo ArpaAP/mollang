@@ -30,7 +30,7 @@ public:
 		for (ll i = 0; i < token.size(); i++) {
 			if (token[i] == u'?') content.push_back(PLUS);
 			else if (token[i] == u'!') content.push_back(MINUS);
-			else if (token[i] == u',') { 
+			else if (token[i] == u',') {
 				is_parameter_set = true;
 				content.push_back(SEPERATOR);
 			}
@@ -72,9 +72,9 @@ public:
 
 set<wchar_t> literal_char = { u'몰', u'모', u'오', u'올', u'?', u'!', u'.', u',' };
 vector<u16string> keywords = { u"루?", u"루!", u"루", u"0ㅅ0" };
-vector<pair<u16string, u16string>> pair_keywords = { 
+vector<pair<u16string, u16string>> pair_keywords = {
 	{u"아", u"루"}, {u"은?행", u"털!자"}, {u"은?행", u"돌!자"},
-	{u"은?행", u"짓!자"}, {u"은?행", u"가!자"}, {u"가", u"자!"} 
+	{u"은?행", u"짓!자"}, {u"은?행", u"가!자"}, {u"가", u"자!"}
 };
 
 set<ll> front_parametered = { 0, 1, 2, KPAIR + 1, KPAIR + 2, KPAIR + 3, KPAIR + 4 };
@@ -106,7 +106,9 @@ Tokenized tokenize(u16string script) {
 			line++;
 			continue;
 		}
-		if (cur == u' ') continue;
+		if (cur == u' ') {
+			continue;
+		}
 		if (literal_char.count(cur)) {
 			ll len = literalToken(script, i);
 			ret.tokens.push_back({ LITERAL, ret.literals.size(), -1 });

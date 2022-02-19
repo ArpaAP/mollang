@@ -56,7 +56,7 @@ Compiled compile(Tokenized& data) {
 				if (ret.literal_owned[get<1>(data.tokens[i - 1])])
 					ErrorCode(MISSING_PARAMETER, data.tokens_position[i]);
 				ret.literal_owned[get<1>(data.tokens[i - 1])] = true;
-				if(non_number_parameter.count(cur))
+				if (non_number_parameter.count(cur))
 					ret.no_calc[get<1>(data.tokens[i - 1])] = true;
 				if (all_type_parameter.count(cur))
 					ret.type[get<1>(data.tokens[i - 1])].first = ALLTYPE;
