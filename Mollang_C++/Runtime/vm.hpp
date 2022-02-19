@@ -10,9 +10,12 @@ public:
 	ll st = -1, ed = -1;
 };
 
+ll emp = -1;
+
 class ENV {
 public:
 	map<ll, ll> variables;
+	map<ll, ll*> copyed_variables;
 };
 
 class GLOBAL {
@@ -43,6 +46,8 @@ ll calc(ENV& env, Literal_Parsed& x, ll idx, ll ed, ll position) {
 		else {
 			if (env.variables.count(x.content[i]))
 				cur += env.variables[x.content[i]];
+			else if (env.copyed_variables.count(x.content[i]))
+				cur += *env.copyed_variables[x.content[i]];
 			else ErrorCode(UNDEFINED_VARIABLE, position);
 		}
 	}
@@ -78,6 +83,8 @@ ld float_calc(ENV& env, Literal_Parsed& x, ll idx, ll position) {
 		else {
 			if (env.variables.count(x.content[i]))
 				cur += env.variables[x.content[i]];
+			if (env.copyed_variables.count(x.content[i]))
+				cur += *env.copyed_variables[x.content[i]];
 			else ErrorCode(UNDEFINED_VARIABLE, position);
 		}
 	}
@@ -101,25 +108,33 @@ void assign(ENV& env, Literal_Parsed& x, ll position, bool process_using_float) 
 		return;
 	}
 
-	if (env.variables.count(x.content[0])) {
+	if (env.variables.count(x.content[0]) || env.copyed_variables.count(x.content[0])) {
 		if (x.content[1] == MULTIPLY) {
 			if (process_using_float) {
 				ld value = float_calc(env, x, 2, position);
-				env.variables[x.content[0]] *= (ll)value;
+				if (env.copyed_variables.count(x.content[0]))
+					*env.copyed_variables[x.content[0]] *= (ll)value;
+				else env.variables[x.content[0]] *= (ll)value;
 			}
 			else {
 				ll value = calc(env, x, 2, -1, position);
-				env.variables[x.content[0]] *= value;
+				if (env.copyed_variables.count(x.content[0]))
+					*env.copyed_variables[x.content[0]] *= value;
+				else env.variables[x.content[0]] *= value;
 			}
 		}
 		else {
 			if (process_using_float) {
 				ld value = float_calc(env, x, 1, position);
-				env.variables[x.content[0]] += (ll)value;
+				if (env.copyed_variables.count(x.content[0]))
+					*env.copyed_variables[x.content[0]] += (ll)value;
+				else env.variables[x.content[0]] += (ll)value;
 			}
 			else {
 				ll value = calc(env, x, 1, -1, position);
-				env.variables[x.content[0]] += value;
+				if (env.copyed_variables.count(x.content[0]))
+					*env.copyed_variables[x.content[0]] += value;
+				else env.variables[x.content[0]] += value;
 			}
 		}
 	}
@@ -160,13 +175,19 @@ ll run(GLOBAL& global, ENV& env, Tokenized& x, Compiled& y, ll st, ll ed) {
 				FUNCTION tmp; 
 				if (get<0>(x.tokens[i + 1]) == LITERAL) {
 					auto& parameter_list = x.literals[get<1>(x.tokens[i + 1])].content;
+					bool success = true;
 					for (ll t = 0; t < parameter_list.size(); t++) {
-						if (parameter_list[t] < SEPERATOR)
-							ErrorCode(WRONG_EXPRESSION, x.tokens_position[i]);
+						if (parameter_list[t] < SEPERATOR) {
+							tmp.parameter.clear();
+							y.literal_owned[get<1>(x.tokens[i + 1])] = false;
+							success = false;
+							break;
+						}
 						if (parameter_list[t] > SEPERATOR)
 							tmp.parameter.push_back(parameter_list[t]);
 					}
-					tmp.st = i + 2;
+					if (success) tmp.st = i + 2;
+					else tmp.st = i + 1;
 				}
 				else tmp.st = i + 1;
 				tmp.ed = s;
@@ -186,18 +207,29 @@ ll run(GLOBAL& global, ENV& env, Tokenized& x, Compiled& y, ll st, ll ed) {
 				auto& tmp = global.functions[global.function[x.literals[get<1>(x.tokens[i - 1])].text]];
 				ll parst = 0, parcnt = 0, returnout = -1;
 				parameters.content.push_back(SEPERATOR);
+				set<ll> local_vars;
 				for (ll t = 0; t < parameters.content.size(); t++) {
 					if (parameters.content[t] == SEPERATOR) {
-						if (parcnt < tmp.parameter.size())
+						if (parcnt < tmp.parameter.size()) {
+							local_vars.insert(tmp.parameter[parcnt]);
 							local.variables[tmp.parameter[parcnt++]] = calc(env, parameters, parst, t, x.tokens_position[i]);
+						}
 						else {
 							if (parameters.content[t - 1] < SEPERATOR)
 								ErrorCode(WRONG_EXPRESSION, x.tokens_position[i]);
-							returnout = parameters.content[t - 1]; //오류검사
+							returnout = parameters.content[t - 1];
 							break;
 						}
 						parst = t + 1;
 					}
+				}
+				for (auto& k : env.variables) {
+					if (local_vars.count(k.first) == 0)
+						local.copyed_variables[k.first] = &k.second;
+				}
+				for (auto& k : env.copyed_variables) {
+					if (local_vars.count(k.first) == 0)
+						local.copyed_variables[k.first] = k.second;
 				}
 				if (parcnt == tmp.parameter.size()) {
 					ll returnv = run(global, local, x, y, tmp.st, tmp.ed + 1);
