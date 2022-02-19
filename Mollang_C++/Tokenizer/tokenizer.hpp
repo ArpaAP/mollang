@@ -83,7 +83,7 @@ set<ll> back_function_parameter = { KPAIR + 3, KPAIR + 4 };
 set<ll> non_number_parameter = { 0 };
 set<ll> all_type_parameter = { 2 };
 set<ll> mid_number_param = { KPAIR, KPAIR + 5 };
-set<ll> not_always_require_parameter = { 3 };
+set<ll> not_always_require_parameter = { 3, KPAIR + 3 };
 
 ll literalToken(u16string& script, ll idx) {
 	ll length = 0;

@@ -157,15 +157,19 @@ ll run(GLOBAL& global, ENV& env, Tokenized& x, Compiled& y, ll st, ll ed) {
 					ErrorCode(WRONG_PARAMETER, x.tokens_position[i]);
 				if (!x.literals[get<1>(x.tokens[i - 1])].function_identifier)
 					ErrorCode(WRONG_PARAMETER, x.tokens_position[i]);
-				FUNCTION tmp; auto& parameter_list = x.literals[get<1>(x.tokens[i + 1])].content;
-				for (ll t = 0; t < parameter_list.size(); t++) {
-					if (parameter_list[t] < SEPERATOR)
-						ErrorCode(WRONG_EXPRESSION, x.tokens_position[i]);
-					if (parameter_list[t] > SEPERATOR)
-						tmp.parameter.push_back(parameter_list[t]);
+				FUNCTION tmp; 
+				if (get<0>(x.tokens[i + 1]) == LITERAL) {
+					auto& parameter_list = x.literals[get<1>(x.tokens[i + 1])].content;
+					for (ll t = 0; t < parameter_list.size(); t++) {
+						if (parameter_list[t] < SEPERATOR)
+							ErrorCode(WRONG_EXPRESSION, x.tokens_position[i]);
+						if (parameter_list[t] > SEPERATOR)
+							tmp.parameter.push_back(parameter_list[t]);
+					}
+					tmp.st = i + 2;
 				}
+				else tmp.st = i + 1;
 				tmp.ed = s;
-				tmp.st = i + 2;
 				global.function[x.literals[get<1>(x.tokens[i - 1])].text] = global.functions.size();
 				global.functions.push_back(tmp);
 				i = s;
@@ -187,6 +191,8 @@ ll run(GLOBAL& global, ENV& env, Tokenized& x, Compiled& y, ll st, ll ed) {
 						if (parcnt < tmp.parameter.size())
 							local.variables[tmp.parameter[parcnt++]] = calc(env, parameters, parst, t, x.tokens_position[i]);
 						else {
+							if (parameters.content[t - 1] < SEPERATOR)
+								ErrorCode(WRONG_EXPRESSION, x.tokens_position[i]);
 							returnout = parameters.content[t - 1]; //오류검사
 							break;
 						}
