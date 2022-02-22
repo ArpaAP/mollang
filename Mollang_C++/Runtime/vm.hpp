@@ -1,7 +1,7 @@
 #include <bits/stdc++.h>
 #include "../Compiler/compiler.hpp";
 using ll = long long;
-using ld = long double; 
+using ld = long double;
 using namespace std;
 
 class FUNCTION {
@@ -22,9 +22,20 @@ class GLOBAL {
 public:
 	map<u16string, ll> function;
 	vector<FUNCTION> functions;
+	Heap<ll> int_heap, char_heap;
+	Heap<ld> float_heap;
 };
 
-ll calc(ENV& env, Literal_Parsed& x, ll idx, ll ed, ll position) {
+ll& write_variable(ENV& env, ll var, ll position) {
+	if (env.variables.count(var))
+		return env.variables[var];
+	if (env.copyed_variables.count(var))
+		return *env.copyed_variables[var];
+	env.variables[var] = 0;
+	return env.variables[var];
+}
+
+ll calc(GLOBAL& global, ENV& env, Literal_Parsed& x, ll idx, ll ed, ll position) {
 	if (ed == -1) ed = x.content.size();
 	if (x.content[0] == MULTIPLY) ErrorCode(WRONG_MULTIPLY, position);
 	if (x.content.back() == MULTIPLY) ErrorCode(WRONG_MULTIPLY, position);
@@ -32,7 +43,30 @@ ll calc(ENV& env, Literal_Parsed& x, ll idx, ll ed, ll position) {
 	ll ans = 1, cur = 0;
 	ll element_type = MULTIPLY;
 	for (ll i = idx; i < ed; i++) {
-		if (x.content[i] <= MULTIPLY) {
+		if (x.heap_pointer[i].type != NOT_HEAP) {
+			Pointer p = x.heap_pointer[i];
+			ll p_i = write_variable(env, p.position.first, position), p_j = write_variable(env, p.position.second, position);
+			if (p.type == INTHEAP)
+				cur += global.int_heap.write(p_i, p_j, position);
+			if (p.type == FLOATHEAP)
+				cur += (ll)global.float_heap.write(p_i, p_j, position);
+			if (p.type == STRHEAP)
+				cur += global.char_heap.write(p_i, p_j, position);
+		}
+		else if (x.content[i] == SIZECOUNTER) {
+			if (i + 1 >= ed) ErrorCode(WRONG_EXPRESSION, position);
+			Pointer p = x.heap_pointer[i + 1];
+			if (p.type == NOT_HEAP) ErrorCode(WRONG_EXPRESSION, position);
+			ll p_i = write_variable(env, p.position.first, position), p_j = write_variable(env, p.position.second, position);
+			if (p.type == INTHEAP)
+				cur += global.int_heap.data_size(p_i, p_j);
+			if (p.type == FLOATHEAP)
+				cur += global.float_heap.data_size(p_i, p_j);
+			if (p.type == STRHEAP)
+				cur += global.char_heap.data_size(p_i, p_j);
+			i++;
+		}
+		else if (x.content[i] <= MULTIPLY) {
 			if (element_type == MULTIPLY) ans *= cur, cur = 0;
 			else {
 				if (cur == 0) ErrorCode(DIVIDE_BY_ZERO, position);
@@ -61,14 +95,38 @@ ll calc(ENV& env, Literal_Parsed& x, ll idx, ll ed, ll position) {
 	return ans;
 }
 
-ld float_calc(ENV& env, Literal_Parsed& x, ll idx, ll position) {
+ld float_calc(GLOBAL& global, ENV& env, Literal_Parsed& x, ll idx, ll ed, ll position) {
+	if (ed == -1) ed = x.content.size();
 	if (x.content[0] == MULTIPLY) ErrorCode(WRONG_MULTIPLY, position);
 	if (x.content.back() == MULTIPLY) ErrorCode(WRONG_MULTIPLY, position);
 
 	ld ans = 1, cur = 0;
 	ll element_type = MULTIPLY;
-	for (ll i = idx; i < x.content.size(); i++) {
-		if (x.content[i] <= MULTIPLY) {
+	for (ll i = idx; i < ed; i++) {
+		if (x.heap_pointer[i].type != NOT_HEAP) {
+			Pointer p = x.heap_pointer[i];
+			ll p_i = write_variable(env, p.position.first, position), p_j = write_variable(env, p.position.second, position);
+			if (p.type == INTHEAP)
+				cur += (ld)global.int_heap.write(p_i, p_j, position);
+			if (p.type == FLOATHEAP)
+				cur += global.float_heap.write(p_i, p_j, position);
+			if (p.type == STRHEAP)
+				cur += (ld)global.char_heap.write(p_i, p_j, position);
+		}
+		else if (x.content[i] == SIZECOUNTER) {
+			if (i + 1 >= ed) ErrorCode(WRONG_EXPRESSION, position);
+			Pointer p = x.heap_pointer[i + 1];
+			if (p.type == NOT_HEAP) ErrorCode(WRONG_EXPRESSION, position);
+			ll p_i = write_variable(env, p.position.first, position), p_j = write_variable(env, p.position.second, position);
+			if (p.type == INTHEAP)
+				cur += global.int_heap.data_size(p_i, p_j);
+			if (p.type == FLOATHEAP)
+				cur += global.float_heap.data_size(p_i, p_j);
+			if (p.type == STRHEAP)
+				cur += global.char_heap.data_size(p_i, p_j);
+			i++;
+		}
+		else if (x.content[i] <= MULTIPLY) {
 			if (element_type == MULTIPLY) ans *= cur, cur = 0;
 			else {
 				if (cur == 0) ErrorCode(DIVIDE_BY_ZERO, position);
@@ -99,8 +157,8 @@ ld float_calc(ENV& env, Literal_Parsed& x, ll idx, ll position) {
 	return ans;
 }
 
-void assign(ENV& env, Literal_Parsed& x, ll position, bool process_using_float) {
-	if (x.content[0] <= 0) ErrorCode(WRONG_EXPRESSION, position);
+void assign(GLOBAL& global, ENV& env, Literal_Parsed& x, ll position, bool process_using_float) {
+	if (x.content[0] <= 0 && x.content[0] != HEAP_POINTER) ErrorCode(WRONG_EXPRESSION, position);
 	if (x.content.back() == MULTIPLY) ErrorCode(WRONG_EXPRESSION, position);
 
 	if (x.content.size() == 1) {
@@ -108,40 +166,63 @@ void assign(ENV& env, Literal_Parsed& x, ll position, bool process_using_float) 
 		return;
 	}
 
-	if (env.variables.count(x.content[0]) || env.copyed_variables.count(x.content[0])) {
-		if (x.content[1] == MULTIPLY) {
-			if (process_using_float) {
-				ld value = float_calc(env, x, 2, position);
-				if (env.copyed_variables.count(x.content[0]))
-					*env.copyed_variables[x.content[0]] *= (ll)value;
-				else env.variables[x.content[0]] *= (ll)value;
+	Pointer p; ll i, j;
+	if (x.heap_pointer[0].type != NOT_HEAP) {
+		p = x.heap_pointer[0];
+		i = write_variable(env, p.position.first, position), j = write_variable(env, p.position.second, position);
+	}
+
+	if (x.content[1] == MULTIPLY) {
+		if (process_using_float) {
+			ld value = float_calc(global, env, x, 2, -1, position);
+			if (x.heap_pointer[0].type != NOT_HEAP) {
+				if (p.type == INTHEAP)
+					global.int_heap.write(i, j, position) *= (ll)value;
+				if (p.type == FLOATHEAP)
+					global.float_heap.write(i, j, position) *= value;
+				if (p.type == STRHEAP)
+					global.char_heap.write(i, j, position) *= (ll)value;
 			}
-			else {
-				ll value = calc(env, x, 2, -1, position);
-				if (env.copyed_variables.count(x.content[0]))
-					*env.copyed_variables[x.content[0]] *= value;
-				else env.variables[x.content[0]] *= value;
-			}
+			else write_variable(env, x.content[0], position) *= (ll)value;
 		}
 		else {
-			if (process_using_float) {
-				ld value = float_calc(env, x, 1, position);
-				if (env.copyed_variables.count(x.content[0]))
-					*env.copyed_variables[x.content[0]] += (ll)value;
-				else env.variables[x.content[0]] += (ll)value;
+			ll value = calc(global, env, x, 2, -1, position);
+			if (x.heap_pointer[0].type != NOT_HEAP) {
+				if (p.type == INTHEAP)
+					global.int_heap.write(i, j, position) *= value;
+				if (p.type == FLOATHEAP)
+					global.float_heap.write(i, j, position) *= value;
+				if (p.type == STRHEAP)
+					global.char_heap.write(i, j, position) *= value;
 			}
-			else {
-				ll value = calc(env, x, 1, -1, position);
-				if (env.copyed_variables.count(x.content[0]))
-					*env.copyed_variables[x.content[0]] += value;
-				else env.variables[x.content[0]] += value;
-			}
+			else write_variable(env, x.content[0], position) *= value;
 		}
 	}
 	else {
-		if (x.content[1] == MULTIPLY) ErrorCode(WRONG_MULTIPLY, position);
-		ll value = calc(env, x, 1, -1, position);
-		env.variables[x.content[0]] = value;
+		if (process_using_float) {
+			ld value = float_calc(global, env, x, 1, -1, position);
+			if (x.heap_pointer[0].type != NOT_HEAP) {
+				if (p.type == INTHEAP)
+					global.int_heap.write(i, j, position) += (ll)value;
+				if (p.type == FLOATHEAP)
+					global.float_heap.write(i, j, position) += value;
+				if (p.type == STRHEAP)
+					global.char_heap.write(i, j, position) += (ll)value;
+			}
+			else write_variable(env, x.content[0], position) += (ll)value;
+		}
+		else {
+			ll value = calc(global, env, x, 1, -1, position);
+			if (x.heap_pointer[0].type != NOT_HEAP) {
+				if (p.type == INTHEAP)
+					global.int_heap.write(i, j, position) += value;
+				if (p.type == FLOATHEAP)
+					global.float_heap.write(i, j, position) += value;
+				if (p.type == STRHEAP)
+					global.char_heap.write(i, j, position) += value;
+			}
+			else write_variable(env, x.content[0], position) += value;
+		}
 	}
 }
 
@@ -151,18 +232,18 @@ ll run(GLOBAL& global, ENV& env, Tokenized& x, Compiled& y, ll st, ll ed) {
 		ll f = get<0>(x.tokens[i]), s = get<1>(x.tokens[i]), t = get<2>(x.tokens[i]);
 		if (f == LITERAL) {
 			if (y.no_calc[s]) continue;
-			if (!y.literal_owned[s]) assign(env, x.literals[s], x.tokens_position[i], y.type[s].second);
+			if (!y.literal_owned[s]) assign(global, env, x.literals[s], x.tokens_position[i], y.use_float[s]);
 		}
 		else if (f >= KPAIR) {
 			if (s == i) ErrorCode(MISSING_MID_PARAMETER, x.tokens_position[i]);
 			if (f == KPAIR + 1) { //은?행 털!자
-				if (calc(env, x.literals[get<1>(x.tokens[i - 1])], 0, -1, x.tokens_position[i]) != 0)
+				if (calc(global, env, x.literals[get<1>(x.tokens[i - 1])], 0, -1, x.tokens_position[i]) != 0)
 					i = s;
 			}
 			else if (f == KPAIR + 2) { //은?행 돌!자
 				if (jump_return.empty() || jump_return.top().second != i)
 					jump_return.push({ s, i });
-				if (calc(env, x.literals[get<1>(x.tokens[i - 1])], 0, -1, x.tokens_position[i]) == 0) {
+				if (calc(global, env, x.literals[get<1>(x.tokens[i - 1])], 0, -1, x.tokens_position[i]) == 0) {
 					i = s;
 					jump_return.pop();
 				}
@@ -172,7 +253,7 @@ ll run(GLOBAL& global, ENV& env, Tokenized& x, Compiled& y, ll st, ll ed) {
 					ErrorCode(WRONG_PARAMETER, x.tokens_position[i]);
 				if (!x.literals[get<1>(x.tokens[i - 1])].function_identifier)
 					ErrorCode(WRONG_PARAMETER, x.tokens_position[i]);
-				FUNCTION tmp; 
+				FUNCTION tmp;
 				if (get<0>(x.tokens[i + 1]) == LITERAL) {
 					auto& parameter_list = x.literals[get<1>(x.tokens[i + 1])].content;
 					bool success = true;
@@ -212,7 +293,7 @@ ll run(GLOBAL& global, ENV& env, Tokenized& x, Compiled& y, ll st, ll ed) {
 					if (parameters.content[t] == SEPERATOR) {
 						if (parcnt < tmp.parameter.size()) {
 							local_vars.insert(tmp.parameter[parcnt]);
-							local.variables[tmp.parameter[parcnt++]] = calc(env, parameters, parst, t, x.tokens_position[i]);
+							local.variables[tmp.parameter[parcnt++]] = calc(global, env, parameters, parst, t, x.tokens_position[i]);
 						}
 						else {
 							if (parameters.content[t - 1] < SEPERATOR)
@@ -244,10 +325,10 @@ ll run(GLOBAL& global, ENV& env, Tokenized& x, Compiled& y, ll st, ll ed) {
 				if (get<0>(x.tokens[i + 1]) != LITERAL)
 					ErrorCode(WRONG_PARAMETER, x.tokens_position[i]);
 
-				ll midparam = calc(env, x.literals[get<1>(x.tokens[i + 1])], 0, -1, x.tokens_position[i]);
+				ll midparam = calc(global, env, x.literals[get<1>(x.tokens[i + 1])], 0, -1, x.tokens_position[i]);
 
 				if (f == KPAIR + 0) { //아루  
-					cout << converter.to_bytes(midparam) << endl;
+					cout << converter.to_bytes(midparam);
 				}
 				else if (f == KPAIR + 5) { //가자!
 					i = x.gotopoint[midparam - 1] - 1;
@@ -260,22 +341,47 @@ ll run(GLOBAL& global, ENV& env, Tokenized& x, Compiled& y, ll st, ll ed) {
 					ErrorCode(MISSING_PARAMETER, x.tokens_position[i]);
 				if (x.literals[get<1>(x.tokens[i - 1])].content.size() >= 2)
 					ErrorCode(WRONG_PARAMETER, x.tokens_position[i]);
-				if (x.literals[get<1>(x.tokens[i - 1])].content[0] <= 0)
-					ErrorCode(WRONG_PARAMETER, x.tokens_position[i]);
-				cin >> env.variables[x.literals[get<1>(x.tokens[i - 1])].content[0]];
+				if (x.literals[get<1>(x.tokens[i - 1])].content[0] > 0) {
+					cin >> env.variables[x.literals[get<1>(x.tokens[i - 1])].content[0]];
+				}
+				else if (x.literals[get<1>(x.tokens[i - 1])].content[0] == HEAP_POINTER) {
+					Pointer p = x.literals[get<1>(x.tokens[i - 1])].heap_pointer[0];
+					ll p_i = write_variable(env, p.position.first, x.tokens_position[i]),
+						p_j = write_variable(env, p.position.second, x.tokens_position[i]);
+					if (p.type == INTHEAP)
+						cin >> global.int_heap.write(p_i, p_j, x.tokens_position[i]);
+					if (p.type == FLOATHEAP)
+						cin >> global.float_heap.write(p_i, p_j, x.tokens_position[i]);
+					if (p.type == STRHEAP) {
+						string tmp;
+						cin >> tmp;
+						for (ll k = 0; k < tmp.size(); k++)
+							global.char_heap.write(p_i, p_j + k, x.tokens_position[i]) = tmp[k];
+					}
+				}
+				else ErrorCode(WRONG_PARAMETER, x.tokens_position[i]);
 			}
 			if (f == 1) { //루!
 				cout << fixed;
-				cout << setprecision(calc(env, x.literals[get<1>(x.tokens[i - 1])], 0, -1, x.tokens_position[i]));
+				cout << setprecision(calc(global, env, x.literals[get<1>(x.tokens[i - 1])], 0, -1, x.tokens_position[i]));
 			}
 			if (f == 2) { //루
-				if (y.type[get<1>(x.tokens[i - 1])].second)
-					cout << float_calc(env, x.literals[get<1>(x.tokens[i - 1])], 0, x.tokens_position[i]);
-				else cout << calc(env, x.literals[get<1>(x.tokens[i - 1])], 0, -1, x.tokens_position[i]);
+				if (x.literals[get<1>(x.tokens[i - 1])].content == vector<ll>{ HEAP_POINTER } &&
+					x.literals[get<1>(x.tokens[i - 1])].heap_pointer[0].type == STRHEAP) {
+					Pointer p = x.literals[get<1>(x.tokens[i - 1])].heap_pointer[0];
+					ll p_i = write_variable(env, p.position.first, x.tokens_position[i]),
+						p_j = write_variable(env, p.position.second, x.tokens_position[i]);
+					ll len = global.char_heap.data_size(p_i, p_j);
+					for (ll k = 0; k < len; k++)
+						cout << (char)global.char_heap.read(p_i, p_j + k, x.tokens_position[i]);
+				}
+				else if (y.use_float[get<1>(x.tokens[i - 1])])
+					cout << float_calc(global, env, x.literals[get<1>(x.tokens[i - 1])], 0, -1, x.tokens_position[i]);
+				else cout << calc(global, env, x.literals[get<1>(x.tokens[i - 1])], 0, -1, x.tokens_position[i]);
 			}
 			if (f == 3) { //0ㅅ0
 				if (i + 1 < x.tokens.size() && get<0>(x.tokens[i + 1]) == LITERAL)
-					return calc(env, x.literals[get<1>(x.tokens[i + 1])], 0, -1, x.tokens_position[i]);
+					return calc(global, env, x.literals[get<1>(x.tokens[i + 1])], 0, -1, x.tokens_position[i]);
 				else return 0;
 			}
 		}

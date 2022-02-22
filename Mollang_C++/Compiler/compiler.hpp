@@ -7,7 +7,7 @@ class Compiled {
 public:
 	vector<bool> literal_owned;
 	vector<bool> no_calc;
-	vector<pair<ll, bool>> type; //result type, process using float
+	vector<bool> use_float;
 };
 
 wstring_convert<codecvt_utf8<char16_t>, char16_t> converter;
@@ -16,12 +16,18 @@ Compiled compile(Tokenized& data) {
 	Compiled ret = {
 		vector<bool>(data.literals.size()),
 		vector<bool>(data.literals.size()),
-		vector<pair<ll, bool>>(data.literals.size())
+		vector<bool>(data.literals.size())
 	};
 	for (ll i = 0; i < data.literals.size(); i++) {
-		for (auto j : data.literals[i].content) {
+		for (auto& j : data.literals[i].content) {
 			if (j == DIVIDE) {
-				ret.type[i].second = true;
+				ret.use_float[i] = true;
+				break;
+			}
+		}
+		for (auto& j : data.literals[i].heap_pointer) {
+			if (j.type == FLOATHEAP) {
+				ret.use_float[i] = true;
 				break;
 			}
 		}
@@ -42,8 +48,6 @@ Compiled compile(Tokenized& data) {
 				ret.literal_owned[get<1>(data.tokens[i + 1])] = true;
 				if (non_number_parameter.count(cur))
 					ret.no_calc[get<1>(data.tokens[i + 1])] = true;
-				if (all_type_parameter.count(cur))
-					ret.type[get<1>(data.tokens[i + 1])].first = ALLTYPE;
 				if (back_function_parameter.count(cur))
 					data.literals[get<1>(data.tokens[i + 1])].is_parameter_set = true;
 			}
@@ -58,8 +62,6 @@ Compiled compile(Tokenized& data) {
 				ret.literal_owned[get<1>(data.tokens[i - 1])] = true;
 				if (non_number_parameter.count(cur))
 					ret.no_calc[get<1>(data.tokens[i - 1])] = true;
-				if (all_type_parameter.count(cur))
-					ret.type[get<1>(data.tokens[i - 1])].first = ALLTYPE;
 			}
 			else ErrorCode(MISSING_PARAMETER, data.tokens_position[i]);
 		}

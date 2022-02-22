@@ -11,6 +11,7 @@ const short DIVIDE_BY_ZERO = -6;
 const short MOD_WITH_FLOAT = -7;
 const short UNDEFINED_FUNCTION = -8;
 const short UNMATCHED_PARAMETER = -9;
+const short HEAP_OUT_OF_INDEX = -10;
 
 using ll = long long;
 using namespace std;

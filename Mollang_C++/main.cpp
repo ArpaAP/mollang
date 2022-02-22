@@ -5,9 +5,7 @@ typedef std::basic_ifstream<char16_t> u16ifstream;
 using namespace std;
 
 int main(int argc, char* argv[]) {
-	locale::global(locale("ko_KR.UTF-8"));
-	wcin.imbue(locale("ko_KR.UTF-8"));
-	wcout.imbue(locale("ko_KR.UTF-8"));
+	cin.tie(0)->sync_with_stdio(0); cout.tie(0);
 
 	bool show_parsed = false;
 	for (ll i = 2; i < argc; i++) {
