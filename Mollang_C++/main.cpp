@@ -6,6 +6,9 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
 	cin.tie(0)->sync_with_stdio(0); cout.tie(0);
+	locale::global(locale("ko_KR.UTF-8"));
+	wcin.imbue(locale("ko_KR.UTF-8"));
+	wcout.imbue(locale("ko_KR.UTF-8"));
 
 	bool show_parsed = false;
 	for (ll i = 2; i < argc; i++) {
@@ -25,12 +28,18 @@ int main(int argc, char* argv[]) {
 		script += '\n';
 	}
 
-	Tokenized token = tokenize(script);
-	Compiled src = compile(token);
+	stack<CallStack> callstack;
+
+	callstack.push({ u"Compile", {}, file });
+	Tokenized token = tokenize(script, callstack);
+	Compiled src = compile(token, callstack);
+	callstack.pop();
 
 	if (show_parsed) show_compiled(token, src);
 
 	ENV default_env = ENV();
 	GLOBAL default_global = GLOBAL();
-	return run(default_global, default_env, token, src, 0, token.tokens.size());
+
+	callstack.push({ u"Main", {}, file });
+	return run(default_global, default_env, token, src, 0, token.tokens.size(), callstack);
 }

@@ -32,7 +32,7 @@ public:
 	vector<Pointer> heap_pointer;
 	bool function_identifier = false;
 	bool is_parameter_set = false;
-	Literal_Parsed(u16string token, ll position) {
+	Literal_Parsed(u16string token, TokenPosition position, stack<CallStack>& callstack) {
 		text = token;
 		for (ll i = 0; i < token.size(); i++) {
 			if (token[i] == u'?') content.push_back(PLUS);
@@ -47,7 +47,7 @@ public:
 			}
 			else if (token[i] == u'.') {
 				if (content.size() == 0)
-					ErrorCode(WRONG_MULTIPLY, position);
+					ErrorCode(WRONG_MULTIPLY, { position.line, position.index + i }, callstack);
 				if (content.back() == DIVIDE_INT)
 					content.back() = DIVIDE_MOD;
 				else if (content.back() == DIVIDE)
@@ -60,16 +60,16 @@ public:
 			else if (token[i] == u'모') {
 				ll len = 2, t = i + 1;
 				while (token[t] == u'오') len++, t++;
-				if (token[t] != u'올') ErrorCode(WRONG_EXPRESSION, position);
+				if (token[t] != u'올') ErrorCode(WRONG_EXPRESSION, { position.line, position.index + i }, callstack);
 				content.push_back(len);
 				i = t;
 			}
-			else ErrorCode(WRONG_EXPRESSION, position);
+			else ErrorCode(WRONG_EXPRESSION, { position.line, position.index + i }, callstack);
 		}
 
 		for (ll i = 0; i < content.size(); i++) {
 			if (i + 2 < content.size() && (FLOATHEAP == content[i + 1] || STRHEAP == content[i + 1] || INTHEAP == content[i + 1])) {
-				if (content[i] <= 0 || content[i + 2] <= 0) ErrorCode(WRONG_EXPRESSION, position);
+				if (content[i] <= 0 || content[i + 2] <= 0) ErrorCode(WRONG_EXPRESSION, position, callstack);
 				heap_pointer.push_back(Pointer(content[i + 1], content[i], content[i + 2]));
 				content[i] = HEAP_POINTER;
 				content.erase(content.begin() + i + 1, content.begin() + i + 3);
@@ -86,12 +86,12 @@ public:
 class Tokenized {
 public:
 	vector<tuple<ll, ll, ll>> tokens;
-	vector<ll> tokens_position;
+	vector<TokenPosition> tokens_position;
 	vector<Literal_Parsed> literals;
 	vector<ll> gotopoint;
 };
 
-set<wchar_t> literal_char = { u'몰', u'모', u'오', u'올', u'?', u'!', u'.', u',', u'*', u'~', u'=', u'&' };
+set<char16_t> literal_char = { u'몰', u'모', u'오', u'올', u'?', u'!', u'.', u',', u'*', u'~', u'=', u'&' };
 vector<u16string> keywords = { u"루?", u"루!", u"루", u"0ㅅ0" };
 vector<pair<u16string, u16string>> pair_keywords = {
 	{u"아", u"루"}, {u"은?행", u"털!자"}, {u"은?행", u"돌!자"},
@@ -114,16 +114,16 @@ ll literalToken(u16string& script, ll idx) {
 	return length;
 }
 
-Tokenized tokenize(u16string script) {
+Tokenized tokenize(u16string script, stack<CallStack>& callstack) {
 	Tokenized ret;
 	ret.gotopoint.push_back(0);
 	stack<pair<ll, set<pair<u16string, ll>>>> closePair;
-	ll line = 0;
-	for (ll i = 0; i < script.size(); i++) {
+	ll line = 0, idx = 0;
+	for (ll i = 0; i < script.size(); i++, idx++) {
 		wchar_t cur = script[i];
 		if (cur == u'\n') {
 			ret.gotopoint.push_back(ret.tokens.size());
-			line++;
+			line++, idx = -1;
 			continue;
 		}
 		if (cur == u' ') {
@@ -132,9 +132,9 @@ Tokenized tokenize(u16string script) {
 		if (literal_char.count(cur)) {
 			ll len = literalToken(script, i);
 			ret.tokens.push_back({ LITERAL, ret.literals.size(), -1 });
-			ret.tokens_position.push_back(line);
-			ret.literals.push_back(Literal_Parsed(script.substr(i, len), line));
-			i += len - 1;
+			ret.tokens_position.push_back({ line, idx });
+			ret.literals.push_back(Literal_Parsed(script.substr(i, len), { line, idx }, callstack));
+			i += len - 1, idx += len - 1;
 			continue;
 		}
 		bool foundToken = false;
@@ -144,7 +144,7 @@ Tokenized tokenize(u16string script) {
 					foundToken = true;
 					get<1>(ret.tokens[closePair.top().first]) = ret.tokens.size() - 1;
 					get<0>(ret.tokens[closePair.top().first]) = x.second;
-					i += x.first.size() - 1;
+					i += x.first.size() - 1, idx += x.first.size() - 1;
 					closePair.pop();
 					break;
 				}
@@ -155,8 +155,8 @@ Tokenized tokenize(u16string script) {
 			if (script.substr(i, keywords[t].size()) == keywords[t]) {
 				foundToken = true;
 				ret.tokens.push_back({ t, -1, -1 });
-				ret.tokens_position.push_back(line);
-				i += keywords[t].size() - 1;
+				ret.tokens_position.push_back({ line, idx });
+				i += keywords[t].size() - 1, idx += keywords[t].size() - 1;
 				break;
 			}
 		}
@@ -173,9 +173,9 @@ Tokenized tokenize(u16string script) {
 		}
 		if (closePair.top().second.empty()) closePair.pop();
 		if (foundToken) {
-			i += plused;
+			i += plused, idx += plused;
 			ret.tokens.push_back({ -1, -1, -1 });
-			ret.tokens_position.push_back(line);
+			ret.tokens_position.push_back({ line, idx });
 			continue;
 		}
 
@@ -183,18 +183,18 @@ Tokenized tokenize(u16string script) {
 			if (u'마' <= script[i] && script[i] <= u'밓' && u'라' <= script[i + 1] && script[i + 1] <= u'맇') {
 				foundToken = true;
 				ret.tokens.push_back({ LITERAL, ret.literals.size(), -1 });
-				ret.tokens_position.push_back(line);
+				ret.tokens_position.push_back({ line, idx });
 				ret.literals.push_back(Literal_Parsed(script.substr(i, 2)));
-				i++;
+				i++, idx++;
 			}
 		}
 		if (foundToken) continue;
 
-		ErrorCode(UNKNOWN_TOKEN, line);
+		ErrorCode(UNKNOWN_TOKEN, { line, idx }, callstack);
 	}
 
 	if (closePair.size() > 0) {
-		ErrorCode(MISSING_PAIR, line);
+		ErrorCode(MISSING_PAIR, { line, 0 }, callstack);
 	}
 
 	return ret;

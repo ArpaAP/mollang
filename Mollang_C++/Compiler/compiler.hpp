@@ -10,9 +10,7 @@ public:
 	vector<bool> use_float;
 };
 
-wstring_convert<codecvt_utf8<char16_t>, char16_t> converter;
-
-Compiled compile(Tokenized& data) {
+Compiled compile(Tokenized& data, stack<CallStack>& callstack) {
 	Compiled ret = {
 		vector<bool>(data.literals.size()),
 		vector<bool>(data.literals.size()),
@@ -39,12 +37,12 @@ Compiled compile(Tokenized& data) {
 		if (back_parametered.count(cur)) {
 			if (i == data.tokens.size() - 1) {
 				if (!not_always_require_parameter.count(cur))
-					ErrorCode(MISSING_PARAMETER, data.tokens_position[i]);
+					ErrorCode(MISSING_PARAMETER, data.tokens_position[i], callstack);
 				continue;
 			}
 			if (get<0>(data.tokens[i + 1]) == LITERAL) {
 				if (ret.literal_owned[get<1>(data.tokens[i + 1])])
-					ErrorCode(MISSING_PARAMETER, data.tokens_position[i]);
+					ErrorCode(MISSING_PARAMETER, data.tokens_position[i], callstack);
 				ret.literal_owned[get<1>(data.tokens[i + 1])] = true;
 				if (non_number_parameter.count(cur))
 					ret.no_calc[get<1>(data.tokens[i + 1])] = true;
@@ -52,18 +50,18 @@ Compiled compile(Tokenized& data) {
 					data.literals[get<1>(data.tokens[i + 1])].is_parameter_set = true;
 			}
 			else if (!not_always_require_parameter.count(cur))
-				ErrorCode(MISSING_PARAMETER, data.tokens_position[i]);
+				ErrorCode(MISSING_PARAMETER, data.tokens_position[i], callstack);
 		}
 		if (front_parametered.count(cur)) {
-			if (i == 0) ErrorCode(MISSING_PARAMETER, data.tokens_position[i]);
+			if (i == 0) ErrorCode(MISSING_PARAMETER, data.tokens_position[i], callstack);
 			if (get<0>(data.tokens[i - 1]) == LITERAL) {
 				if (ret.literal_owned[get<1>(data.tokens[i - 1])])
-					ErrorCode(MISSING_PARAMETER, data.tokens_position[i]);
+					ErrorCode(MISSING_PARAMETER, data.tokens_position[i], callstack);
 				ret.literal_owned[get<1>(data.tokens[i - 1])] = true;
 				if (non_number_parameter.count(cur))
 					ret.no_calc[get<1>(data.tokens[i - 1])] = true;
 			}
-			else ErrorCode(MISSING_PARAMETER, data.tokens_position[i]);
+			else ErrorCode(MISSING_PARAMETER, data.tokens_position[i], callstack);
 		}
 		if (mid_number_param.count(cur)) {
 			ll t = i + 1;

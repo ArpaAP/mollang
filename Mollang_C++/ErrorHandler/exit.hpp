@@ -16,7 +16,32 @@ const short HEAP_OUT_OF_INDEX = -10;
 using ll = long long;
 using namespace std;
 
-void ErrorCode(short code, ll position) {
-	cout << '[' << position + 1 << ']';
+class TokenPosition {
+public:
+	ll line, index;
+};
+
+class CallStack {
+public:
+	u16string name;
+	vector<ll> parameters;
+	string filename;
+};
+
+wstring_convert<codecvt_utf8<char16_t>, char16_t> converter;
+
+void ErrorCode(short code, TokenPosition position, stack<CallStack> callstack) {
+	cerr << "\nError Occured\n";
+	cerr << "at " << callstack.top().filename << '[' << position.line + 1 << ':' << position.index << ']';
+	while (!callstack.empty()) {
+		cerr << "\nin " << callstack.top().filename << ':' << converter.to_bytes(callstack.top().name) << '(';
+		for (ll i = 0; i < callstack.top().parameters.size(); i++) {
+			cerr << callstack.top().parameters[i];
+			if (i + 1 != callstack.top().parameters.size())
+				cerr << ", ";
+		}
+		cerr << ")";
+		callstack.pop();
+	}
 	exit(code);
 }

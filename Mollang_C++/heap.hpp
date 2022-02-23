@@ -14,11 +14,11 @@ class Heap {
 public:
 	vector<vector<T>> heap_data;
 	
-	T read(ll i, ll j, ll position) {
-		if (i <= 0 || j <= 0) ErrorCode(HEAP_OUT_OF_INDEX, position);
+	T read(ll i, ll j, TokenPosition position, stack<CallStack>& callstack) {
+		if (i <= 0 || j <= 0) ErrorCode(HEAP_OUT_OF_INDEX, position, callstack);
 		if (i <= heap_data.size() && j <= heap_data[i - 1].size())
 			return heap_data[i - 1][j - 1];
-		ErrorCode(HEAP_OUT_OF_INDEX, position);
+		ErrorCode(HEAP_OUT_OF_INDEX, position, callstack);
 	}
 
 	bool canRead(ll i, ll j) {
@@ -29,8 +29,8 @@ public:
 		return false;
 	}
 
-	T& write(ll i, ll j, ll position) {
-		if (i <= 0 || j <= 0) ErrorCode(HEAP_OUT_OF_INDEX, position);
+	T& write(ll i, ll j, TokenPosition position, stack<CallStack>& callstack) {
+		if (i <= 0 || j <= 0) ErrorCode(HEAP_OUT_OF_INDEX, position, callstack);
 
 		while (heap_data.size() < i) heap_data.push_back({});
 		while (heap_data[i - 1].size() < j) heap_data[i - 1].push_back(0);
@@ -39,8 +39,9 @@ public:
 	}
 
 	ll data_size(ll i, ll j) {
+		stack<CallStack> callstack;
 		ll cnt = 0;
-		while (canRead(i, j) && read(i, j, -1) != 0) {
+		while (canRead(i, j) && read(i, j, { -1, -1 }, callstack) != 0) {
 			cnt++, j++;
 		}
 		return cnt;
