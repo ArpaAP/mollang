@@ -103,7 +103,7 @@ set<ll> back_parametered = { 3, KPAIR + 3, KPAIR + 4 };
 set<ll> back_function_parameter = { KPAIR + 3, KPAIR + 4 };
 set<ll> non_number_parameter = { 0 };
 set<ll> mid_number_param = { KPAIR, KPAIR + 5 };
-set<ll> not_always_require_parameter = { 3, KPAIR + 3 };
+set<ll> not_always_require_parameter = { 3, KPAIR + 3, KPAIR + 4 };
 
 ll literalToken(u16string& script, ll idx) {
 	ll length = 0;
@@ -127,6 +127,9 @@ Tokenized tokenize(u16string script, stack<CallStack>& callstack) {
 			continue;
 		}
 		if (cur == u' ') {
+			continue;
+		}
+		if (cur == u'\t') {
 			continue;
 		}
 		if (literal_char.count(cur)) {

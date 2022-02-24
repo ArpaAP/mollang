@@ -343,6 +343,8 @@ ll run(GLOBAL& global, ENV& env, Tokenized& x, Compiled& y, ll st, ll ed, stack<
 					cout << converter.to_bytes(midparam);
 				}
 				else if (f == KPAIR + 5) { //°¡ÀÚ!
+					if (y.block_owned[x.tokens_position[i].line] != y.block_owned[midparam - 1])
+						ErrorCode(IMPOSSIBLE_JUMP, x.tokens_position[i], callstack);
 					i = x.gotopoint[midparam - 1] - 1;
 				}
 			}

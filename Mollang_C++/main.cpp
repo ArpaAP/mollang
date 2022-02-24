@@ -28,11 +28,13 @@ int main(int argc, char* argv[]) {
 		script += '\n';
 	}
 
+	ll block_counter = 0;
+
 	stack<CallStack> callstack;
 
 	callstack.push({ u"Compile", {}, file });
 	Tokenized token = tokenize(script, callstack);
-	Compiled src = compile(token, callstack);
+	Compiled src = compile(token, callstack, block_counter);
 	callstack.pop();
 
 	if (show_parsed) show_compiled(token, src);

@@ -3,18 +3,22 @@
 using ll = long long;
 using namespace std;
 
+const ll MAINBLOCK = 0;
+
 class Compiled {
 public:
 	vector<bool> literal_owned;
 	vector<bool> no_calc;
 	vector<bool> use_float;
+	vector<ll> block_owned;
 };
 
-Compiled compile(Tokenized& data, stack<CallStack>& callstack) {
+Compiled compile(Tokenized& data, stack<CallStack>& callstack, ll& block_counter) {
 	Compiled ret = {
 		vector<bool>(data.literals.size()),
 		vector<bool>(data.literals.size()),
-		vector<bool>(data.literals.size())
+		vector<bool>(data.literals.size()),
+		vector<ll>(data.gotopoint.size())
 	};
 	for (ll i = 0; i < data.literals.size(); i++) {
 		for (auto& j : data.literals[i].content) {
@@ -73,6 +77,28 @@ Compiled compile(Tokenized& data, stack<CallStack>& callstack) {
 			i = t - 1;
 		}
 	}
+
+	vector<ll> ownblock(data.tokens.size());
+	ll inblock = block_counter, processing_line = 0, usedblock = block_counter;
+
+	ll breakpoint = -1;
+	for (ll i = 0; i < data.tokens.size(); i++) {
+		if (get<0>(data.tokens[i]) == KPAIR + 3) {
+			if (inblock != block_counter)
+				ErrorCode(WRONG_FUNCTION_DEFINITION, data.tokens_position[i], callstack);
+			inblock = ++usedblock, breakpoint = get<1>(data.tokens[i]);
+		}
+		if (i == breakpoint)
+			inblock = block_counter, breakpoint = -1;
+		ownblock[i] = inblock;
+	}
+	for (ll i = 0; i < data.gotopoint.size(); i++) {
+		if (data.gotopoint[i] < data.tokens.size())
+			ret.block_owned[i] = ownblock[data.gotopoint[i]];
+		else ret.block_owned[i] = block_counter;
+	}
+
+	block_counter = usedblock + 1;
 
 	return ret;
 }
